@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.forEach(input => {
       const q = Number(input.value || 0);
       if (q > 0) {
-        details += "・" + input.dataset.name + " × " + q + "\\n";
+        details += "・" + input.dataset.name + " × " + q + "\n";
         sum += q * Number(input.dataset.price || 0);
       }
     });
@@ -121,14 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const msg =
-"【予約注文】\\n" +
-"■お名前：" + name + "\\n" +
-"■場所：" + place + "\\n" +
-"■時間：" + time + "\\n\\n" +
-"■内容：\\n" +
-details +
-"──────────\\n" +
-"合計：" + sum.toLocaleString() + "円";
+      "【予約注文】\n" +
+      "■お名前：" + name + "\n" +
+      "■場所：" + place + "\n" +
+      "■時間：" + time + "\n\n" +
+      "■内容：\n" +
+      details +
+      "──────────\n" +
+      "合計：" + sum.toLocaleString() + "円";
 
     const url = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
     window.location.href = url;
