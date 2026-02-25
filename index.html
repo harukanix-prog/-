@@ -13,7 +13,6 @@
   .pg-name-box { flex: 1 !important; font-weight: bold; font-size: 14px; line-height: 1.3; }
   .pg-price-tag { color: #e74c3c; font-size: 11px; margin-left: 5px; font-weight: normal; }
 
-  /* ← これ、今のHTMLだと class付いてないから効いてなかった！ */
   .pg-qty {
     width: 70px !important; min-width: 70px !important; height: 40px !important;
     text-align: center !important; font-size: 18px !important; font-weight: bold !important;
@@ -38,10 +37,10 @@
     <span class="pg-title">■ 出店場所を選択</span>
     <select id="custPlace" class="pg-input-field">
       <option value="">場所を選択してください</option>
-      <option value="イオン鴻池">2/17(火) イオン鴻池</option>
-      <option value="堺中央典礼会館">2/21(土) 堺中央典礼会館</option>
-      <option value="エコール・ロゼ富田林">2/22(日) エコール・ロゼ富田林</option>
-      <option value="そよら新金岡">2/25(水) そよら新金岡</option>
+      <option value="2/17(火) イオン鴻池">2/17(火) イオン鴻池</option>
+      <option value="2/21(土) 堺中央典礼会館">2/21(土) 堺中央典礼会館</option>
+      <option value="2/22(日) エコール・ロゼ富田林">2/22(日) エコール・ロゼ富田林</option>
+      <option value="2/25(水) そよら新金岡">2/25(水) そよら新金岡</option>
     </select>
   </div>
 
@@ -58,15 +57,24 @@
     </select>
   </div>
 
-  <!-- ↓メニューは今のまま流用OK（class="pg-qty" だけ維持してね） -->
   <div class="pg-cat-tag">✨ オリジナルクレープ</div>
-  <div class="pg-row"><div class="pg-name-box">生いちごホイップ<span class="pg-price-tag">700円</span></div><input type="number" class="pg-qty" data-name="生いちごホイップ" data-price="700" value="0" min="0"></div>
-  <!-- …以下略：はるちゃんのメニュー行をそのまま続けてOK … -->
+
+  <div class="pg-row">
+    <div class="pg-name-box">
+      生いちごホイップ<span class="pg-price-tag">700円</span>
+    </div>
+    <input type="number" class="pg-qty" data-name="生いちごホイップ" data-price="700" value="0" min="0">
+  </div>
+
 </div>
 
 <div class="pg-footer-bar">
-  <div class="pg-total-txt">合計：<span id="total-val" style="color:#e74c3c; font-size:24px;">0</span>円</div>
-  <a href="#" id="sendLineBtn" class="pg-btn-line">LINEに注文を送る</a>
+  <div class="pg-total-txt">
+    合計：<span id="total-val" style="color:#e74c3c; font-size:24px;">0</span>円
+  </div>
+  <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line">
+    LINEに注文を送る
+  </a>
 </div>
 
 <script>
@@ -75,26 +83,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const totalDisp = document.getElementById('total-val');
   const sendBtn = document.getElementById('sendLineBtn');
 
-  const calc = () => {
+  function calc() {
     let total = 0;
-    for (const input of inputs) {
+    inputs.forEach(input => {
       const price = Number(input.dataset.price || 0);
       const qty = Number(input.value || 0);
       total += price * qty;
-    }
+    });
     totalDisp.textContent = total.toLocaleString();
-  };
-
-  // 初期計算 + リアルタイム計算
-  calc();
-  for (const input of inputs) {
-    input.addEventListener('input', calc);
-    input.addEventListener('change', calc);
   }
 
-  sendBtn.addEventListener('click', (e) => {
-    e.preventDefault();
+  calc();
+  inputs.forEach(input => {
+    input.addEventListener('input', calc);
+    input.addEventListener('change', calc);
+  });
 
+  sendBtn.addEventListener('click', () => {
     const name = document.getElementById('custName').value.trim();
     const place = document.getElementById('custPlace').value;
     const time  = document.getElementById('custTime').value;
@@ -102,13 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let details = "";
     let sum = 0;
 
-    for (const input of inputs) {
+    inputs.forEach(input => {
       const q = Number(input.value || 0);
       if (q > 0) {
-        details += `・${input.dataset.name} × ${q}\n`;
+        details += "・" + input.dataset.name + " × " + q + "\\n";
         sum += q * Number(input.dataset.price || 0);
       }
-    }
+    });
 
     if (!name || !place || !time || sum === 0) {
       alert("お名前、場所、時間、メニューを正しく入力してください🐧");
@@ -116,21 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const msg =
-`【予約注文】
-■お名前：${name}
-■場所：${place}
-■時間：${time}
+"【予約注文】\\n" +
+"■お名前：" + name + "\\n" +
+"■場所：" + place + "\\n" +
+"■時間：" + time + "\\n\\n" +
+"■内容：\\n" +
+details +
+"──────────\\n" +
+"合計：" + sum.toLocaleString() + "円";
 
-■内容：
-${details}──────────
-合計：${sum.toLocaleString()}円`;
-
-    // ★はるちゃんが動作確認できてる公式LINEのURL
-    const lineBase = "https://lin.ee/TldjSmh";
-    const url = `${lineBase}?text=${encodeURIComponent(msg)}`;
-
+    const url = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
     window.location.href = url;
   });
 });
 </script>
-
