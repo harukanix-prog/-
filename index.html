@@ -130,7 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
       "──────────\n" +
       "合計：" + sum.toLocaleString() + "円";
 
-    const url = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
+    // ✅ 改行を確実に扱う（端末差対策）
+    const normalizedMsg = msg.replace(/\r\n|\r|\n/g, "\n");
+    const text = encodeURIComponent(normalizedMsg).replace(/%0D%0A|%0A|%0D/g, "%0A");
+
+    const url = "https://line.me/R/msg/text/?" + text;
     window.location.href = url;
   });
 });
