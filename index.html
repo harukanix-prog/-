@@ -1,241 +1,366 @@
-<style>
-  #pg-form { max-width: 100%; margin: 0 auto; font-family: sans-serif; color: #333; padding-bottom: 120px; }
-  .pg-card { background: #fdfdfd; border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
-  .pg-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; display: block; }
-  .pg-input-field { width: 100% !important; padding: 10px !important; border: 1px solid #ccc !important; border-radius: 5px !important; font-size: 16px !important; box-sizing: border-box !important; }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🐧 ご予約注文フォーム</title>
 
-  .pg-cat-tag { background: #34495e; color: #fff; padding: 5px 10px; border-radius: 4px; margin: 20px 0 10px 0; font-size: 12px; font-weight: bold; }
+  <style>
+    :root{
+      --blue:#3498db;
+      --line:#06C755;
+      --danger:#e74c3c;
+      --bg:#ffffff;
+      --muted:#999;
+      --card:#fdfdfd;
+      --border:#eee;
+    }
 
-  .pg-row {
-    display: flex !important; align-items: center !important; justify-content: space-between !important;
-    padding: 10px 5px !important; border-bottom: 1px solid #eee !important; background: #fff !important;
-  }
-  .pg-name-box { flex: 1 !important; font-weight: bold; font-size: 14px; line-height: 1.3; }
-  .pg-price-tag { color: #e74c3c; font-size: 11px; margin-left: 5px; font-weight: normal; }
+    body{ margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; color:#333; }
+    #pg-form{ max-width: 720px; margin:0 auto; padding:12px 12px 140px; }
+    h3{ text-align:center; color:var(--blue); margin:10px 0 16px; }
 
-  .pg-qty {
-    width: 70px !important; min-width: 70px !important; height: 40px !important;
-    text-align: center !important; font-size: 18px !important; font-weight: bold !important;
-    border: 2px solid #3498db !important; border-radius: 6px !important; margin-left: 10px !important;
-    -webkit-appearance: none;
-  }
+    .pg-card{ background:var(--card); border:1px solid var(--border); padding:12px; border-radius:10px; margin-bottom:10px; }
+    .pg-title{ font-weight:800; font-size:15px; margin-bottom:6px; display:block; }
 
-  .pg-footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px; border-top: 3px solid #3498db; text-align: center; z-index: 99999; box-shadow: 0 -3px 15px rgba(0,0,0,0.1); }
-  .pg-total-txt { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-  .pg-btn-line { display: block; background: #06C755; color: white !important; text-decoration: none !important; padding: 15px; border-radius: 35px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 0 #05a346; }
-</style>
+    .pg-input-field{
+      width:100%; padding:12px; border:1px solid #ccc; border-radius:8px;
+      font-size:17px; box-sizing:border-box;
+    }
 
-<div id="pg-form">
-  <h3 style="text-align:center; color:#3498db;">🐧 ご予約注文フォーム</h3>
+    /* スマホで字が小さい問題対策 */
+    .pg-input-field, .pg-row, .pg-name-box { -webkit-text-size-adjust: 100%; }
 
-  <div class="pg-card">
-    <span class="pg-title">■ お名前</span>
-    <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎">
-  </div>
+    .pg-cat-tag{
+      background:#34495e; color:#fff; padding:6px 10px; border-radius:8px;
+      margin:18px 0 10px; font-size:13px; font-weight:800;
+    }
 
-  <div class="pg-card">
-    <span class="pg-title">■ 出店場所を選択</span>
-    <select id="custPlace" class="pg-input-field">
-      <option value="">場所を選択してください</option>
-      <option value="2/17(火) イオン鴻池">2/17(火) イオン鴻池</option>
-      <option value="2/21(土) 堺中央典礼会館">2/21(土) 堺中央典礼会館</option>
-      <option value="2/22(日) エコール・ロゼ富田林">2/22(日) エコール・ロゼ富田林</option>
-      <option value="2/25(水) そよら新金岡">2/25(水) そよら新金岡</option>
-    </select>
-  </div>
+    .pg-row{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 8px; border-bottom:1px solid #eee; background:#fff;
+      border-radius:10px;
+      margin-bottom:8px;
+    }
 
-  <div class="pg-card">
-    <span class="pg-title">■ お受取り希望時間</span>
-    <select id="custTime" class="pg-input-field">
-      <option value="">時間を選択してください</option>
-      <option value="11:30ごろ">11:30ごろ</option>
-      <option value="12:00ごろ">12:00ごろ</option>
-      <option value="13:00ごろ">13:00ごろ</option>
-      <option value="14:00ごろ">14:00ごろ</option>
-      <option value="15:00ごろ">15:00ごろ</option>
-      <option value="16:00ごろ">16:00ごろ</option>
-    </select>
-  </div>
+    .pg-name-box{ flex:1; font-weight:800; font-size:16px; line-height:1.25; }
+    .pg-price-tag{ color:var(--danger); font-size:12px; margin-left:6px; font-weight:700; }
 
-  <div class="pg-cat-tag">✨ オリジナルクレープ</div>
+    .pg-qty{
+      width:86px; min-width:86px; height:44px;
+      text-align:center; font-size:20px; font-weight:900;
+      border:2px solid var(--blue); border-radius:10px; margin-left:10px;
+      -webkit-appearance:none;
+    }
 
-  <div class="pg-row">
-    <div class="pg-name-box">
-      生いちごホイップ<span class="pg-price-tag">700円</span>
+    /* 売り切れグレー表示（定番） */
+    .is-soldout{
+      opacity:0.45;
+    }
+    .is-soldout .pg-qty{
+      border-color:#bbb;
+      pointer-events:none;
+    }
+
+    .pg-footer-bar{
+      position:fixed; bottom:0; left:0; width:100%;
+      background:#fff; padding:14px 12px; border-top:3px solid var(--blue);
+      text-align:center; z-index:99999; box-shadow: 0 -3px 15px rgba(0,0,0,0.08);
+    }
+    .pg-total-txt{ font-size:18px; font-weight:900; margin-bottom:10px; }
+    .pg-btn-line{
+      display:block; background:var(--line); color:#fff; text-decoration:none;
+      padding:16px; border-radius:999px; font-weight:900; font-size:18px;
+      box-shadow:0 4px 0 #05a346;
+    }
+    .pg-btn-line.disabled{
+      background:#cfcfcf; box-shadow:none; pointer-events:none;
+    }
+    .pg-help{
+      font-size:13px; color:#666; margin-top:10px; line-height:1.4;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="pg-form">
+    <h3>🐧 ご予約注文フォーム</h3>
+
+    <div class="pg-card">
+      <span class="pg-title">■ お名前</span>
+      <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎">
     </div>
-    <input type="number" class="pg-qty" data-name="生いちごホイップ" data-price="700" value="0" min="0">
+
+    <div class="pg-card">
+      <span class="pg-title">■ 出店場所を選択</span>
+      <select id="custPlace" class="pg-input-field">
+        <option value="">場所を選択してください</option>
+        <!-- ★ここは「iCalから自動生成」に後で置き換え可能。今は手動でもOK -->
+      </select>
+    </div>
+
+    <div class="pg-card">
+      <span class="pg-title">■ お受取り希望時間</span>
+      <select id="custTime" class="pg-input-field">
+        <option value="">時間を選択してください</option>
+        <option value="11:30ごろ">11:30ごろ</option>
+        <option value="12:00ごろ">12:00ごろ</option>
+        <option value="12:30ごろ">12:30ごろ</option>
+        <option value="13:00ごろ">13:00ごろ</option>
+        <option value="13:30ごろ">13:30ごろ</option>
+        <option value="14:00ごろ">14:00ごろ</option>
+        <option value="14:30ごろ">14:30ごろ</option>
+        <option value="15:00ごろ">15:00ごろ</option>
+        <option value="15:30ごろ">15:30ごろ</option>
+        <option value="16:00ごろ">16:00ごろ</option>
+      </select>
+    </div>
+
+    <!-- ここに「シートから読み込んだメニュー」が入る -->
+    <div id="menuArea"></div>
+
+    <div class="pg-help">
+      ※入力欄が表示されていない商品は、時間外または売り切れとなります。<br>
+      ※細かいご要望（トッピング等）はLINEでお気軽にお知らせください🐧
+    </div>
   </div>
 
-</div>
-
-<div class="pg-footer-bar">
-  <div class="pg-total-txt">
-    合計：<span id="total-val" style="color:#e74c3c; font-size:24px;">0</span>円
+  <div class="pg-footer-bar">
+    <div class="pg-total-txt">合計：<span id="total-val" style="color:#e74c3c; font-size:24px;">0</span>円</div>
+    <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">お名前・場所・時間・メニューを入力してね</a>
   </div>
-  <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line">
-    LINEに注文を送る
-  </a>
-</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // ====== 設定（ここだけ触ればOK）======
-  const ICS_URL = "https://calendar.google.com/calendar/ical/penguin.kitchen8%40gmail.com/public/basic.ics";
-  const DAYS_AHEAD = 60; // 何日先まで候補に出すか
-  // ======================================
+/* =========================
+   ✅ ここだけ書き換える
+========================= */
+const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
+const SHEET_NAME     = "MENU";  // ← シート名（例：menu）
+/* ========================= */
 
-  const inputs = Array.from(document.querySelectorAll('.pg-qty'));
-  const totalDisp = document.getElementById('total-val');
-  const sendBtn = document.getElementById('sendLineBtn');
+const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?"; // 改行OK（今これが安定）
 
-  const placeSelect = document.getElementById('custPlace');
+function gvizUrl() {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+}
 
-  // ---------- 合計計算 ----------
-  function calc() {
-    let total = 0;
-    for (const input of inputs) {
-      const price = Number(input.dataset.price || 0);
-      const qty = Number(input.value || 0);
-      total += price * qty;
+function parseGviz(text){
+  // gvizは JSON そのままじゃなくて、関数で包まれて返る
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  const json = text.substring(start, end + 1);
+  return JSON.parse(json);
+}
+
+function todayYmd(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function safeText(v){
+  return (v ?? "").toString().trim();
+}
+
+function isTruthyActive(v){
+  // ◯ / ○ / TRUE / true / 1 など全部OKにする
+  const s = safeText(v).toLowerCase();
+  return (s === "◯" || s === "○" || s === "true" || s === "1" || s === "yes" || s === "y");
+}
+
+function isLimitedCategory(cat){
+  const c = safeText(cat);
+  return c.includes("限定") || c.includes("オリジナル");
+}
+
+async function loadMenuFromSheet(){
+  const res = await fetch(gvizUrl(), { cache: "no-store" });
+  const txt = await res.text();
+  const data = parseGviz(txt);
+
+  const cols = data.table.cols.map(c => (c.label || "").trim());
+  const rows = data.table.rows;
+
+  // 期待カラム：name, price, active, sort, category, note
+  const idx = (name) => cols.findIndex(c => c === name);
+
+  const iName = idx("name");
+  const iPrice = idx("price");
+  const iActive = idx("active");
+  const iSort = idx("sort");
+  const iCat = idx("category");
+  const iNote = idx("note");
+
+  const items = rows.map(r => {
+    const cells = r.c.map(x => x ? (x.v ?? "") : "");
+    return {
+      name: safeText(cells[iName]),
+      price: Number(cells[iPrice] || 0),
+      active: isTruthyActive(cells[iActive]),
+      sort: Number(cells[iSort] || 9999),
+      category: safeText(cells[iCat]),
+      note: safeText(cells[iNote]),
+    };
+  }).filter(x => x.name && x.price);
+
+  // sort昇順
+  items.sort((a,b) => a.sort - b.sort);
+
+  // categoryごとに並べる
+  const byCat = new Map();
+  for (const it of items){
+    const cat = it.category || "メニュー";
+    if (!byCat.has(cat)) byCat.set(cat, []);
+    byCat.get(cat).push(it);
+  }
+
+  const menuArea = document.getElementById("menuArea");
+  menuArea.innerHTML = "";
+
+  for (const [cat, list] of byCat.entries()){
+    const catTag = document.createElement("div");
+    catTag.className = "pg-cat-tag";
+    catTag.textContent = `✨ ${cat}`;
+    menuArea.appendChild(catTag);
+
+    for (const it of list){
+      // 限定/オリジナルは active=false なら非表示
+      if (!it.active && isLimitedCategory(it.category)) continue;
+
+      const row = document.createElement("div");
+      row.className = "pg-row";
+      if (!it.active) row.classList.add("is-soldout");
+
+      const nameBox = document.createElement("div");
+      nameBox.className = "pg-name-box";
+      nameBox.innerHTML = `${it.name}<span class="pg-price-tag">${it.price}円</span>`;
+
+      const qty = document.createElement("input");
+      qty.type = "number";
+      qty.className = "pg-qty";
+      qty.min = "0";
+      qty.value = "0";
+      qty.dataset.name = it.name;
+      qty.dataset.price = String(it.price);
+      qty.disabled = !it.active;
+
+      row.appendChild(nameBox);
+      row.appendChild(qty);
+      menuArea.appendChild(row);
     }
-    totalDisp.textContent = total.toLocaleString();
   }
-  calc();
-  for (const input of inputs) {
-    input.addEventListener('input', calc);
-    input.addEventListener('change', calc);
+}
+
+function setupPlaceTempOptions(){
+  // いったん手動の仮データ（あとでiCal自動生成に置き換えできる）
+  const sel = document.getElementById("custPlace");
+  const opts = [
+    "3/5(木) 喫茶ドーベル",
+    "3/6(金) イオン",
+    "3/13(金) アイズ商会",
+  ];
+  for (const v of opts){
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v;
+    sel.appendChild(o);
   }
+}
 
-  // ---------- ICSパース（超軽量版） ----------
-  function parseICS(text) {
-    // 改行の折返し（RFC）に対応
-    const unfolded = text.replace(/\r?\n[ \t]/g, '');
-    const blocks = unfolded.split('BEGIN:VEVENT').slice(1);
-
-    const events = [];
-    for (const b of blocks) {
-      const block = b.split('END:VEVENT')[0];
-
-      const dtStartLine = block.match(/DTSTART[^:]*:(.+)/);
-      const summaryLine = block.match(/SUMMARY:(.+)/);
-
-      if (!dtStartLine || !summaryLine) continue;
-
-      const dtRaw = dtStartLine[1].trim();
-      const summary = summaryLine[1].trim();
-
-      // DTSTART:20260304 みたいな終日形式を想定（はるちゃん運用）
-      // もしDTSTART:20260304T.... が混じっても日付だけ拾う
-      const y = dtRaw.slice(0,4);
-      const m = dtRaw.slice(4,6);
-      const d = dtRaw.slice(6,8);
-
-      if (!/^\d{4}$/.test(y) || !/^\d{2}$/.test(m) || !/^\d{2}$/.test(d)) continue;
-
-      const date = new Date(Number(y), Number(m)-1, Number(d));
-      events.push({ date, summary });
-    }
-    return events;
+function calcTotal(){
+  const inputs = Array.from(document.querySelectorAll(".pg-qty"));
+  let total = 0;
+  for (const input of inputs){
+    const price = Number(input.dataset.price || 0);
+    const qty = Number(input.value || 0);
+    total += price * qty;
   }
+  document.getElementById("total-val").textContent = total.toLocaleString();
+  return total;
+}
 
-  function fmtJP(date) {
-    // 例: 3/4(水)
-    const mm = date.getMonth() + 1;
-    const dd = date.getDate();
-    const w = ["日","月","火","水","木","金","土"][date.getDay()];
-    return `${mm}/${dd}(${w})`;
+function refreshSendButton(){
+  const name = document.getElementById("custName").value.trim();
+  const place = document.getElementById("custPlace").value;
+  const time  = document.getElementById("custTime").value;
+  const sum = calcTotal();
+
+  const btn = document.getElementById("sendLineBtn");
+  const ok = !!name && !!place && !!time && sum > 0;
+
+  if (ok){
+    btn.classList.remove("disabled");
+    btn.textContent = "LINEに注文を送る";
+  }else{
+    btn.classList.add("disabled");
+    btn.textContent = "お名前・場所・時間・メニューを入力してね";
   }
+}
 
-  function withinRange(date, daysAhead) {
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const end = new Date(today);
-    end.setDate(end.getDate() + daysAhead);
+function buildAndSendLine(){
+  const inputs = Array.from(document.querySelectorAll(".pg-qty"));
+  const name = document.getElementById("custName").value.trim();
+  const place = document.getElementById("custPlace").value;
+  const time  = document.getElementById("custTime").value;
 
-    return date >= today && date <= end;
-  }
+  let details = "";
+  let sum = 0;
 
-  function addOption(valueText, labelText) {
-    const opt = document.createElement('option');
-    opt.value = valueText;
-    opt.textContent = labelText;
-    placeSelect.appendChild(opt);
-  }
-
-  async function loadPlacesFromCalendar() {
-    // 失敗してもフォームは動くようにする（保険）
-    try {
-      // GitHub Pages から Google のICSを読む時、CORSが弾かれることがある
-      // その場合は CORSプロキシ経由で読む
-      const corsProxy = "https://r.jina.ai/http://";
-      const url = corsProxy + ICS_URL.replace(/^https?:\/\//, '');
-      const res = await fetch(url);
-      const text = await res.text();
-
-      const events = parseICS(text)
-        .filter(e => withinRange(e.date, DAYS_AHEAD))
-        .sort((a,b) => a.date - b.date);
-
-      // 同じ日・同じSUMMARYの重複を削除
-      const seen = new Set();
-      for (const e of events) {
-        const key = `${e.date.toDateString()}|${e.summary}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        const label = `${fmtJP(e.date)} ${e.summary}`;
-        // valueも labelと同じにしておく（LINEにそのまま載せやすい）
-        addOption(label, label);
-      }
-
-      // 候補が0件なら表示
-      if (placeSelect.options.length === 1) {
-        addOption("（予約OKの出店予定がありません）", "（予約OKの出店予定がありません）");
-      }
-    } catch (err) {
-      // 読み込み失敗時：手動で選べないと困るので案内
-      addOption("（読み込み失敗：あとで再読み込みしてください）", "（読み込み失敗：あとで再読み込みしてください）");
+  for (const input of inputs){
+    const q = Number(input.value || 0);
+    if (q > 0){
+      details += `・${input.dataset.name} × ${q}\n`;
+      sum += q * Number(input.dataset.price || 0);
     }
   }
 
-  // 起動時に候補生成
-  loadPlacesFromCalendar();
+  if (!name || !place || !time || sum === 0){
+    alert("お名前、場所、時間、メニューを正しく入力してください🐧");
+    return;
+  }
 
-  // ---------- LINE送信 ----------
-  sendBtn.addEventListener('click', () => {
-    const name = document.getElementById('custName').value.trim();
-    const place = document.getElementById('custPlace').value;
-    const time  = document.getElementById('custTime').value;
+  const msg =
+`【予約注文】
+■お名前：${name}
+■場所：${place}
+■時間：${time}
 
-    let details = "";
-    let sum = 0;
+■内容：
+${details}──────────
+合計：${sum.toLocaleString()}円`;
 
-    for (const input of inputs) {
-      const q = Number(input.value || 0);
-      if (q > 0) {
-        details += "・" + input.dataset.name + " × " + q + "\n";
-        sum += q * Number(input.dataset.price || 0);
-      }
+  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
+  window.location.href = url;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // メニュー読込
+  await loadMenuFromSheet();
+
+  // 場所は仮（あとでiCalから自動にできる）
+  setupPlaceTempOptions();
+
+  // 監視
+  document.getElementById("custName").addEventListener("input", refreshSendButton);
+  document.getElementById("custPlace").addEventListener("change", refreshSendButton);
+  document.getElementById("custTime").addEventListener("change", refreshSendButton);
+
+  document.addEventListener("input", (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains("pg-qty")){
+      refreshSendButton();
     }
-
-    if (!name || !place || !time || sum === 0 || place.includes("読み込み失敗") || place.includes("ありません")) {
-      alert("お名前、場所、時間、メニューを正しく入力してください🐧");
-      return;
-    }
-
-    const msg =
-      "【予約注文】\n" +
-      "■お名前：" + name + "\n" +
-      "■場所：" + place + "\n" +
-      "■時間：" + time + "\n\n" +
-      "■内容：\n" +
-      details +
-      "──────────\n" +
-      "合計：" + sum.toLocaleString() + "円";
-
-    const url = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
-    window.location.href = url;
   });
+
+  document.getElementById("sendLineBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+    if (e.currentTarget.classList.contains("disabled")) return;
+    buildAndSendLine();
+  });
+
+  refreshSendButton();
 });
 </script>
-
+</body>
+</html>
