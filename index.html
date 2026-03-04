@@ -79,26 +79,129 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // ====== 設定（ここだけ触ればOK）======
+  const ICS_URL = "https://calendar.google.com/calendar/ical/penguin.kitchen8%40gmail.com/public/basic.ics";
+  const DAYS_AHEAD = 45; // 何日先まで候補に出すか
+  // ======================================
+
   const inputs = Array.from(document.querySelectorAll('.pg-qty'));
   const totalDisp = document.getElementById('total-val');
   const sendBtn = document.getElementById('sendLineBtn');
 
+  const placeSelect = document.getElementById('custPlace');
+
+  // ---------- 合計計算 ----------
   function calc() {
     let total = 0;
-    inputs.forEach(input => {
+    for (const input of inputs) {
       const price = Number(input.dataset.price || 0);
       const qty = Number(input.value || 0);
       total += price * qty;
-    });
+    }
     totalDisp.textContent = total.toLocaleString();
   }
-
   calc();
-  inputs.forEach(input => {
+  for (const input of inputs) {
     input.addEventListener('input', calc);
     input.addEventListener('change', calc);
-  });
+  }
 
+  // ---------- ICSパース（超軽量版） ----------
+  function parseICS(text) {
+    // 改行の折返し（RFC）に対応
+    const unfolded = text.replace(/\r?\n[ \t]/g, '');
+    const blocks = unfolded.split('BEGIN:VEVENT').slice(1);
+
+    const events = [];
+    for (const b of blocks) {
+      const block = b.split('END:VEVENT')[0];
+
+      const dtStartLine = block.match(/DTSTART[^:]*:(.+)/);
+      const summaryLine = block.match(/SUMMARY:(.+)/);
+
+      if (!dtStartLine || !summaryLine) continue;
+
+      const dtRaw = dtStartLine[1].trim();
+      const summary = summaryLine[1].trim();
+
+      // DTSTART:20260304 みたいな終日形式を想定（はるちゃん運用）
+      // もしDTSTART:20260304T.... が混じっても日付だけ拾う
+      const y = dtRaw.slice(0,4);
+      const m = dtRaw.slice(4,6);
+      const d = dtRaw.slice(6,8);
+
+      if (!/^\d{4}$/.test(y) || !/^\d{2}$/.test(m) || !/^\d{2}$/.test(d)) continue;
+
+      const date = new Date(Number(y), Number(m)-1, Number(d));
+      events.push({ date, summary });
+    }
+    return events;
+  }
+
+  function fmtJP(date) {
+    // 例: 3/4(水)
+    const mm = date.getMonth() + 1;
+    const dd = date.getDate();
+    const w = ["日","月","火","水","木","金","土"][date.getDay()];
+    return `${mm}/${dd}(${w})`;
+  }
+
+  function withinRange(date, daysAhead) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const end = new Date(today);
+    end.setDate(end.getDate() + daysAhead);
+
+    return date >= today && date <= end;
+  }
+
+  function addOption(valueText, labelText) {
+    const opt = document.createElement('option');
+    opt.value = valueText;
+    opt.textContent = labelText;
+    placeSelect.appendChild(opt);
+  }
+
+  async function loadPlacesFromCalendar() {
+    // 失敗してもフォームは動くようにする（保険）
+    try {
+      // GitHub Pages から Google のICSを読む時、CORSが弾かれることがある
+      // その場合は CORSプロキシ経由で読む
+      const corsProxy = "https://r.jina.ai/http://";
+      const url = corsProxy + ICS_URL.replace(/^https?:\/\//, '');
+      const res = await fetch(url);
+      const text = await res.text();
+
+      const events = parseICS(text)
+        .filter(e => withinRange(e.date, DAYS_AHEAD))
+        .sort((a,b) => a.date - b.date);
+
+      // 同じ日・同じSUMMARYの重複を削除
+      const seen = new Set();
+      for (const e of events) {
+        const key = `${e.date.toDateString()}|${e.summary}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        const label = `${fmtJP(e.date)} ${e.summary}`;
+        // valueも labelと同じにしておく（LINEにそのまま載せやすい）
+        addOption(label, label);
+      }
+
+      // 候補が0件なら表示
+      if (placeSelect.options.length === 1) {
+        addOption("（予約OKの出店予定がありません）", "（予約OKの出店予定がありません）");
+      }
+    } catch (err) {
+      // 読み込み失敗時：手動で選べないと困るので案内
+      addOption("（読み込み失敗：あとで再読み込みしてください）", "（読み込み失敗：あとで再読み込みしてください）");
+    }
+  }
+
+  // 起動時に候補生成
+  loadPlacesFromCalendar();
+
+  // ---------- LINE送信 ----------
   sendBtn.addEventListener('click', () => {
     const name = document.getElementById('custName').value.trim();
     const place = document.getElementById('custPlace').value;
@@ -107,15 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let details = "";
     let sum = 0;
 
-    inputs.forEach(input => {
+    for (const input of inputs) {
       const q = Number(input.value || 0);
       if (q > 0) {
         details += "・" + input.dataset.name + " × " + q + "\n";
         sum += q * Number(input.dataset.price || 0);
       }
-    });
+    }
 
-    if (!name || !place || !time || sum === 0) {
+    if (!name || !place || !time || sum === 0 || place.includes("読み込み失敗") || place.includes("ありません")) {
       alert("お名前、場所、時間、メニューを正しく入力してください🐧");
       return;
     }
@@ -130,12 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
       "──────────\n" +
       "合計：" + sum.toLocaleString() + "円";
 
-    // ✅ 改行を確実に扱う（端末差対策）
-    const normalizedMsg = msg.replace(/\r\n|\r|\n/g, "\n");
-    const text = encodeURIComponent(normalizedMsg).replace(/%0D%0A|%0A|%0D/g, "%0A");
-
-    const url = "https://line.me/R/msg/text/?" + text;
+    const url = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
     window.location.href = url;
   });
 });
 </script>
+
