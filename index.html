@@ -467,7 +467,7 @@ async function loadPlacesFromIcalRobust(){
         const obj = JSON.parse(cached);
         if (obj && Array.isArray(obj.labels) && obj.labels.length > 0){
           setPlaceOptions(obj.labels);
-          setPlaceStatusNote("⚠ 日程取得に失敗したため、前回の予定（キャッシュ）を表示しています");
+          setPlaceStatusNote("⚠ 直近の出店予定を表示しています");
           showManualPlaceInput(false);
         }else{
           // キャッシュが壊れてたら手入力
