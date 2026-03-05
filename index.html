@@ -289,7 +289,7 @@ function gvizUrl() {
 }
 function isActive(v){
   const s = safeText(v).toLowerCase();
-  return (s === "◯" || s === "○" || s === "true" || s === "1" || s === "yes" || s === "y");
+  v === true || s === "true" || s === "o" || s === "○" || s === "1" || s === "yes" || s === "y"
 }
 function isLimitedCategory(cat){
   const c = safeText(cat);
