@@ -254,9 +254,10 @@ const ICAL_RETRIES = 2; // 追加で2回（合計 最大3回トライ）
 const PLACE_CACHE_KEY = "pg_place_cache_v1";
 
 // allorigins が不調でも順に試す
-const CORS_PROXIES = [
-  "https://api.allorigins.win/raw?url=",
-  "https://cors.isomorphic-git.org/",
+  const CORS_PROXIES = [
+  { type: "query", prefix: "https://api.allorigins.win/raw?url=" },
+  { type: "path",  prefix: "https://cors.isomorphic-git.org/" },
+  { type: "path",  prefix: "https://thingproxy.freeboard.io/fetch/" }, // 予備（たまに強い）
 ];
 
 function setPlaceStatusNote(text){
@@ -299,7 +300,13 @@ async function fetchIcsRobust(icalUrl){
   for (let attempt = 0; attempt <= ICAL_RETRIES; attempt++){
     for (const proxy of CORS_PROXIES){
       try{
-        const fetchUrl = proxy + encodeURIComponent(icalUrl);
+       let fetchUrl = "";
+if (proxy.type === "query") {
+  fetchUrl = proxy.prefix + encodeURIComponent(icalUrl);
+} else {
+  // path型は「prefix + 元URLそのまま」
+  fetchUrl = proxy.prefix + icalUrl;
+}
         const text = await fetchWithTimeout(fetchUrl);
         // それっぽい内容か最低限チェック
         if (!text || text.indexOf("BEGIN:VEVENT") === -1) throw new Error("ICS invalid");
