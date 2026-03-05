@@ -102,33 +102,17 @@
       appearance:none;
       background:#fff;
     }
-    .is-soldout{
-      opacity:0.45;
-    }
+    .is-soldout{ opacity:0.45; }
     .is-soldout .pg-qty{
       border-color:#bbb;
       pointer-events:none;
     }
-
-    .pg-loading{
-      color:var(--muted);
+    .pg-help{
       font-size:14px;
-      padding:10px 0;
-    }
-
-    .pg-note{
-      font-size:13px;
-      color:var(--muted);
-      margin-top:8px;
+      color:#666;
+      margin-top:12px;
       line-height:1.5;
     }
-    .pg-warn{
-      font-size:13px;
-      color:#b04a00;
-      margin-top:8px;
-      line-height:1.5;
-    }
-
     .pg-footer-bar{
       position:fixed;
       bottom:0;
@@ -162,13 +146,31 @@
       box-shadow:none;
       pointer-events:none;
     }
-
-    /* 手入力エリア */
-    #manualPlaceWrap{
-      display:none;
+    .pg-loading{
+      color:var(--muted);
+      font-size:14px;
+      padding:10px 0;
+    }
+    .pg-status{
+      color:var(--muted);
+      font-size:13px;
+      padding-top:8px;
+      line-height:1.4;
+    }
+    .pg-warn{ color:#a85a00; font-weight:700; }
+    .pg-manual-wrap{
       margin-top:10px;
-      border-top:1px dashed #ddd;
-      padding-top:10px;
+      display:none;
+    }
+    .pg-mini-btn{
+      margin-top:10px;
+      display:inline-block;
+      border:1px solid #ddd;
+      background:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
     }
   </style>
 </head>
@@ -188,12 +190,13 @@
       </select>
 
       <div id="placeLoading" class="pg-loading">出店日程を読み込み中…</div>
-      <div id="placeStatusNote" class="pg-warn" style="display:none;"></div>
+      <div id="placeStatusNote" class="pg-status"></div>
 
-      <div id="manualPlaceWrap">
-        <span class="pg-title">■ 場所（手入力）</span>
-        <input type="text" id="custPlaceManual" class="pg-input-field" placeholder="例：3/18(水) そよら新金岡イオン" />
-        <div class="pg-note">※日程が読み込めない時だけ使えます</div>
+      <button type="button" id="retryPlaceBtn" class="pg-mini-btn" style="display:none;">もう一度読み込む</button>
+
+      <div id="manualPlaceWrap" class="pg-manual-wrap">
+        <div class="pg-status pg-warn">※日程が読み込めない時だけ、ここに手入力できます</div>
+        <input type="text" id="custPlaceManual" class="pg-input-field" placeholder="例：3/18(水) そよら新金岡イオン 12-17時" />
       </div>
     </div>
 
@@ -208,7 +211,7 @@
       <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
     </div>
 
-    <div class="pg-note" style="margin-top:10px;">
+    <div class="pg-help">
       ※入力欄が表示されていない商品は、時間外または売り切れとなります。<br>
       ※細かいご要望（トッピング等）はLINEでお気軽にお知らせください🐧
     </div>
@@ -229,52 +232,38 @@
 ========================= */
 // ① メニュー（Googleスプレッドシート）
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
-const SHEET_NAME     = "menu";   // シート名
-const SHOW_DAYS      = 45;       // 45日先まで表示
+const SHEET_NAME     = "menu";  // はるちゃんのシート名
 
-// ② 出店場所（GASプロキシ） ※はるちゃんのデプロイURL
+// ② 出店場所（GASプロキシ /exec）
 const ICAL_PROXY_URL = "https://script.google.com/macros/s/AKfycbxPngyHgUoHPTUGYgkL84gcZyHt5lfCpa3LAFApBYoQUR2HgBkuvDfdpOiEirVpAKDR/exec";
-// （中で Googleカレンダーの basic.ics を取りに行く想定）
+
+// ③ 表示日数（表示文言用。実際の絞り込みはGAS側）
+const SHOW_DAYS = 45;
 /* ========================= */
 
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 
-// キャッシュ（出店日程）
-const PLACE_CACHE_KEY = "pg_place_cache_v1";
-const PLACE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12時間
-const ICAL_TIMEOUT_MS = 8000;
-const ICAL_RETRIES = 1; // 1回リトライ（合計最大2回）
+// キャッシュ
+const PLACE_CACHE_KEY = "pg_place_cache_v2";
+const PLACE_CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12時間
+const PLACE_FETCH_TIMEOUT_MS = 8000;
+const PLACE_RETRIES = 1; // 追加リトライ（合計2回）
 
 function safeText(v){ return (v ?? "").toString().trim(); }
-
-function isActive(v){
-  const s = safeText(v).toLowerCase();
-  return (s === "◯" || s === "○" || s === "true" || s === "1" || s === "yes" || s === "y");
-}
-function isLimitedCategory(cat){
-  const c = safeText(cat);
-  return c.includes("限定") || c.includes("オリジナル");
-}
-function isRegularCategory(cat){
-  const c = safeText(cat);
-  return c.includes("定番");
-}
 
 function weekdayJa(dateObj){
   const w = ["日","月","火","水","木","金","土"];
   return w[dateObj.getDay()];
 }
-function formatDateMdJa(dateObj){
-  const m = dateObj.getMonth()+1;
-  const d = dateObj.getDate();
-  return `${m}/${d}(${weekdayJa(dateObj)})`;
-}
-function startOfToday(){
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
+function formatDateMdJaFromISO(iso){
+  // iso: YYYY-MM-DD
+  const y = Number(iso.slice(0,4));
+  const m = Number(iso.slice(5,7)) - 1;
+  const d = Number(iso.slice(8,10));
+  const dt = new Date(y, m, d);
+  return `${m+1}/${d}(${weekdayJa(dt)})`;
 }
 
-/* ---------- 時間候補 ---------- */
 function buildTimeOptions(){
   const sel = document.getElementById("custTime");
   const times = [
@@ -289,15 +278,26 @@ function buildTimeOptions(){
   }
 }
 
-/* ---------- メニュー（GViz） ---------- */
-function gvizUrl() {
-  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-}
 function parseGviz(text){
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   const json = text.substring(start, end + 1);
   return JSON.parse(json);
+}
+function gvizUrl() {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+}
+function isActive(v){
+  const s = safeText(v).toLowerCase();
+  return (s === "◯" || s === "○" || s === "true" || s === "1" || s === "yes" || s === "y");
+}
+function isLimitedCategory(cat){
+  const c = safeText(cat);
+  return c.includes("限定") || c.includes("オリジナル");
+}
+function isRegularCategory(cat){
+  const c = safeText(cat);
+  return c.includes("定番");
 }
 
 async function loadMenuFromSheet(){
@@ -306,10 +306,8 @@ async function loadMenuFromSheet(){
     const res = await fetch(gvizUrl(), { cache: "no-store" });
     const txt = await res.text();
     const data = parseGviz(txt);
-
     const cols = data.table.cols.map(c => (c.label || "").trim());
     const rows = data.table.rows;
-
     const idx = (name) => cols.findIndex(c => c === name);
     const iName  = idx("name");
     const iPrice = idx("price");
@@ -348,7 +346,6 @@ async function loadMenuFromSheet(){
 
     for (const cat of order){
       const list = byCat.get(cat);
-
       const catTag = document.createElement("div");
       catTag.className = "pg-cat-tag";
       catTag.textContent = `✨ ${cat}`;
@@ -358,282 +355,4 @@ async function loadMenuFromSheet(){
         if (!it.active && isLimitedCategory(it.category)) continue;
 
         const row = document.createElement("div");
-        row.className = "pg-row";
-
-        if (!it.active && isRegularCategory(it.category)) row.classList.add("is-soldout");
-
-        const nameBox = document.createElement("div");
-        nameBox.className = "pg-name-box";
-        nameBox.innerHTML = `${it.name}<span class="pg-price-tag">${it.price}円</span>`;
-
-        const qty = document.createElement("input");
-        qty.type = "number";
-        qty.className = "pg-qty";
-        qty.min = "0";
-        qty.value = "0";
-        qty.dataset.name = it.name;
-        qty.dataset.price = String(it.price);
-
-        if (!it.active && isRegularCategory(it.category)) qty.disabled = true;
-
-        row.appendChild(nameBox);
-        row.appendChild(qty);
-        menuArea.appendChild(row);
-      }
-    }
-  }catch(e){
-    console.error(e);
-    const menuArea = document.getElementById("menuArea");
-    menuArea.innerHTML = `<div class="pg-loading">⚠️ メニューが読み込めませんでした。スプシの「ウェブに公開」または「リンクを知っている全員が閲覧可」を確認してね。</div>`;
-  }finally{
-    if (menuLoading) menuLoading.remove();
-  }
-}
-
-/* ---------- 出店日程（キャッシュ） ---------- */
-function setPlaceStatusNote(text){
-  const el = document.getElementById("placeStatusNote");
-  if (!el) return;
-  if (!text){
-    el.style.display = "none";
-    el.textContent = "";
-  }else{
-    el.style.display = "block";
-    el.textContent = text;
-  }
-}
-function showManualPlaceInput(show){
-  const wrap = document.getElementById("manualPlaceWrap");
-  if (!wrap) return;
-  wrap.style.display = show ? "block" : "none";
-}
-function getPlaceValue(){
-  const manualWrap = document.getElementById("manualPlaceWrap");
-  if (manualWrap && manualWrap.style.display !== "none"){
-    return (document.getElementById("custPlaceManual")?.value || "").trim();
-  }
-  return (document.getElementById("custPlace")?.value || "").trim();
-}
-
-function loadPlaceCache(){
-  try{
-    const raw = localStorage.getItem(PLACE_CACHE_KEY);
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (!obj || !obj.ts || !Array.isArray(obj.items)) return null;
-    const age = Date.now() - obj.ts;
-    if (age > PLACE_CACHE_TTL_MS) return null;
-    return obj.items;
-  }catch(_){
-    return null;
-  }
-}
-function savePlaceCache(items){
-  try{
-    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
-  }catch(_){}
-}
-
-/* 45日フィルタ */
-function filterWithinDays(items, days){
-  const today = startOfToday();
-  const end = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
-  return items.filter(x => {
-    const d = x.date instanceof Date ? x.date : new Date(x.date);
-    return d >= today && d <= end;
-  });
-}
-
-/* fetch timeout */
-async function fetchWithTimeout(url){
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), ICAL_TIMEOUT_MS);
-  try{
-    const res = await fetch(url, { cache:"no-store", signal: controller.signal });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json(); // GASはJSON返す想定
-  }finally{
-    clearTimeout(t);
-  }
-}
-
-/* GASから取得 → {items:[{date:"YYYY-MM-DD", title:"..."}, ...]} を想定 */
-async function loadPlacesFromGAS(){
-  const placeLoading = document.getElementById("placeLoading");
-  const sel = document.getElementById("custPlace");
-
-  try{
-    let data = null;
-    let lastErr = null;
-
-    for (let attempt=0; attempt<=ICAL_RETRIES; attempt++){
-      try{
-        data = await fetchWithTimeout(ICAL_PROXY_URL);
-        break;
-      }catch(e){
-        lastErr = e;
-      }
-    }
-    if (!data || !Array.isArray(data.items)) throw lastErr || new Error("No data");
-
-    // 変換
-    let list = data.items.map(it => {
-      const d = new Date(it.date + "T00:00:00");
-      return { date: d, title: safeText(it.title) };
-    }).filter(x => x.title && !isNaN(x.date.getTime()));
-
-    // 今日以降 & 45日
-    list = filterWithinDays(list, SHOW_DAYS).sort((a,b)=>a.date-b.date);
-
-    // 重複排除
-    const seen = new Set();
-    const uniq = [];
-    for (const e of list){
-      const key = e.date.toISOString().slice(0,10) + "||" + e.title;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      uniq.push(e);
-    }
-
-    // 追加
-    for (const e of uniq){
-      const label = `${formatDateMdJa(e.date)} ${e.title}`;
-      const o = document.createElement("option");
-      o.value = label;
-      o.textContent = label;
-      sel.appendChild(o);
-    }
-
-    if (uniq.length === 0){
-      const o = document.createElement("option");
-      o.value = "";
-      o.textContent = "（45日以内の予約OK予定がありません）";
-      sel.appendChild(o);
-    }
-
-    // 成功したらキャッシュ保存
-    savePlaceCache(uniq.map(e => ({ date: e.date.toISOString().slice(0,10), title: e.title })));
-    setPlaceStatusNote("");        // note消す
-    showManualPlaceInput(false);   // 手入力隠す
-
-  }catch(e){
-    console.error(e);
-
-    // キャッシュがあればそれを出す（フォームは生きる）
-    const cached = loadPlaceCache();
-    if (cached && cached.length){
-      for (const it of cached){
-        const d = new Date(it.date + "T00:00:00");
-        const label = `${formatDateMdJa(d)} ${it.title}`;
-        const o = document.createElement("option");
-        o.value = label;
-        o.textContent = label;
-        sel.appendChild(o);
-      }
-      setPlaceStatusNote("⚠ 日程取得に失敗したため、前回の予定（キャッシュ）を表示しています");
-      showManualPlaceInput(false);
-    }else{
-      setPlaceStatusNote("⚠ 日程取得に失敗（キャッシュなし）→ 手入力で予約できます");
-      showManualPlaceInput(true);
-    }
-  }finally{
-    if (placeLoading) placeLoading.remove();
-  }
-}
-
-/* ---------- 合計/送信 ---------- */
-function calcTotal(){
-  const inputs = Array.from(document.querySelectorAll(".pg-qty"));
-  let total = 0;
-  for (const input of inputs){
-    const price = Number(input.dataset.price || 0);
-    const qty = Number(input.value || 0);
-    total += price * qty;
-  }
-  document.getElementById("total-val").textContent = total.toLocaleString();
-  return total;
-}
-
-function refreshSendButton(){
-  const name = document.getElementById("custName").value.trim();
-  const place = getPlaceValue();
-  const time  = document.getElementById("custTime").value;
-  const sum = calcTotal();
-
-  const btn = document.getElementById("sendLineBtn");
-  const ok = !!name && !!place && !!time && sum > 0;
-
-  if (ok){
-    btn.classList.remove("disabled");
-    btn.textContent = "LINEに注文を送る";
-  }else{
-    btn.classList.add("disabled");
-    btn.textContent = "お名前・場所・時間・メニューを入力してね";
-  }
-}
-
-function buildAndSendLine(){
-  const inputs = Array.from(document.querySelectorAll(".pg-qty"));
-  const name = document.getElementById("custName").value.trim();
-  const place = getPlaceValue();
-  const time  = document.getElementById("custTime").value;
-
-  let details = "";
-  let sum = 0;
-
-  for (const input of inputs){
-    const q = Number(input.value || 0);
-    if (q > 0){
-      details += `・${input.dataset.name} × ${q}\n`;
-      sum += q * Number(input.dataset.price || 0);
-    }
-  }
-
-  if (!name || !place || !time || sum === 0){
-    alert("お名前、場所、時間、メニューを正しく入力してください🐧");
-    return;
-  }
-
-  const msg =
-`【予約注文】
-■お名前：${name}
-■場所：${place}
-■時間：${time}
-■内容：
-${details}──────────
-合計：${sum.toLocaleString()}円`;
-
-  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
-  window.location.href = url;
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  buildTimeOptions();
-
-  await Promise.all([
-    loadMenuFromSheet(),
-    loadPlacesFromGAS()
-  ]);
-
-  document.getElementById("custName").addEventListener("input", refreshSendButton);
-  document.getElementById("custPlace").addEventListener("change", refreshSendButton);
-  document.getElementById("custTime").addEventListener("change", refreshSendButton);
-  document.getElementById("custPlaceManual").addEventListener("input", refreshSendButton);
-
-  document.addEventListener("input", (e) => {
-    if (e.target && e.target.classList && e.target.classList.contains("pg-qty")){
-      refreshSendButton();
-    }
-  });
-
-  document.getElementById("sendLineBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-    if (e.currentTarget.classList.contains("disabled")) return;
-    buildAndSendLine();
-  });
-
-  refreshSendButton();
-});
-</script>
-</body>
-</html>
+        row.className = "
