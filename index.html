@@ -102,7 +102,6 @@
       appearance:none;
       background:#fff;
     }
-    /* 売り切れグレー表示（定番） */
     .is-soldout{
       opacity:0.45;
     }
@@ -110,12 +109,26 @@
       border-color:#bbb;
       pointer-events:none;
     }
-    .pg-help{
+
+    .pg-loading{
+      color:var(--muted);
       font-size:14px;
-      color:#666;
-      margin-top:12px;
+      padding:10px 0;
+    }
+
+    .pg-note{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
       line-height:1.5;
     }
+    .pg-warn{
+      font-size:13px;
+      color:#b04a00;
+      margin-top:8px;
+      line-height:1.5;
+    }
+
     .pg-footer-bar{
       position:fixed;
       bottom:0;
@@ -149,28 +162,13 @@
       box-shadow:none;
       pointer-events:none;
     }
-    /* 読み込み中表示 */
-    .pg-loading{
-      color:var(--muted);
-      font-size:14px;
-      padding:10px 0;
-    }
-    /* 手入力欄（普段は隠す） */
+
+    /* 手入力エリア */
     #manualPlaceWrap{
       display:none;
       margin-top:10px;
-    }
-    #manualPlaceHint{
-      font-size:12px;
-      color:#666;
-      margin-top:6px;
-      line-height:1.4;
-    }
-    #placeStatusNote{
-      font-size:12px;
-      color:#666;
-      margin-top:6px;
-      line-height:1.4;
+      border-top:1px dashed #ddd;
+      padding-top:10px;
     }
   </style>
 </head>
@@ -190,13 +188,12 @@
       </select>
 
       <div id="placeLoading" class="pg-loading">出店日程を読み込み中…</div>
-      <div id="placeStatusNote"></div>
+      <div id="placeStatusNote" class="pg-warn" style="display:none;"></div>
 
-      <!-- 最終手入力（カレンダーがどうしても読めない時だけ表示） -->
       <div id="manualPlaceWrap">
-        <div style="font-weight:900; font-size:13px; margin:8px 0 6px;">■ 場所（手入力）</div>
-        <input type="text" id="custPlaceManual" class="pg-input-field" placeholder="例：4/14(火) イオン鴻池 11-17時" />
-        <div id="manualPlaceHint">※日程が読み込めない時だけ使えます</div>
+        <span class="pg-title">■ 場所（手入力）</span>
+        <input type="text" id="custPlaceManual" class="pg-input-field" placeholder="例：3/18(水) そよら新金岡イオン" />
+        <div class="pg-note">※日程が読み込めない時だけ使えます</div>
       </div>
     </div>
 
@@ -211,7 +208,7 @@
       <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
     </div>
 
-    <div class="pg-help">
+    <div class="pg-note" style="margin-top:10px;">
       ※入力欄が表示されていない商品は、時間外または売り切れとなります。<br>
       ※細かいご要望（トッピング等）はLINEでお気軽にお知らせください🐧
     </div>
@@ -232,110 +229,25 @@
 ========================= */
 // ① メニュー（Googleスプレッドシート）
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
-const SHEET_NAME     = "menu";  // はるちゃんのシート名
+const SHEET_NAME     = "menu";   // シート名
+const SHOW_DAYS      = 45;       // 45日先まで表示
 
-// ② 出店場所（GASプロキシ）
+// ② 出店場所（GASプロキシ） ※はるちゃんのデプロイURL
 const ICAL_PROXY_URL = "https://script.google.com/macros/s/AKfycbxPngyHgUoHPTUGYgkL84gcZyHt5lfCpa3LAFApBYoQUR2HgBkuvDfdpOiEirVpAKDR/exec";
-
-// ③ 何日先まで表示する？
-const SHOW_DAYS = 45; // ← 45日先まで
+// （中で Googleカレンダーの basic.ics を取りに行く想定）
 /* ========================= */
 
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 
-/* =========================
-   ✅ カレンダーが死なない強化
-   - 取得リトライ
-   - キャッシュ
-   - 最終手入力
-========================= */
-const ICAL_TIMEOUT_MS = 8000;
-const ICAL_RETRIES = 2; // 追加で2回（合計 最大3回トライ）
+// キャッシュ（出店日程）
 const PLACE_CACHE_KEY = "pg_place_cache_v1";
+const PLACE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12時間
+const ICAL_TIMEOUT_MS = 8000;
+const ICAL_RETRIES = 1; // 1回リトライ（合計最大2回）
 
-// allorigins が不調でも順に試す
-  const CORS_PROXIES = [
-  { type: "query", prefix: "https://api.allorigins.win/raw?url=" },
-  { type: "path",  prefix: "https://cors.isomorphic-git.org/" },
-  { type: "path",  prefix: "https://thingproxy.freeboard.io/fetch/" }, // 予備（たまに強い）
-];
+function safeText(v){ return (v ?? "").toString().trim(); }
 
-function setPlaceStatusNote(text){
-  const el = document.getElementById("placeStatusNote");
-  if (!el) return;
-  el.textContent = text || "";
-}
-
-function showManualPlaceInput(show){
-  const wrap = document.getElementById("manualPlaceWrap");
-  if (!wrap) return;
-  wrap.style.display = show ? "block" : "none";
-}
-
-function getPlaceValue(){
-  // 手入力が表示されている時は手入力優先
-  const manualWrap = document.getElementById("manualPlaceWrap");
-  if (manualWrap && manualWrap.style.display !== "none"){
-    return (document.getElementById("custPlaceManual")?.value || "").trim();
-  }
-  return (document.getElementById("custPlace")?.value || "").trim();
-}
-
-async function fetchWithTimeout(url){
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), ICAL_TIMEOUT_MS);
-  try{
-    const res = await fetch(url, { cache: "no-store", signal: controller.signal });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.text();
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-async function fetchIcsRobust(icalUrl){
-  // プロキシ×リトライで最大限がんばる
-  let lastErr = null;
-
-  for (let attempt = 0; attempt <= ICAL_RETRIES; attempt++){
-    for (const proxy of CORS_PROXIES){
-      try{
-       let fetchUrl = "";
-if (proxy.type === "query") {
-  fetchUrl = proxy.prefix + encodeURIComponent(icalUrl);
-} else {
-  // path型は「prefix + 元URLそのまま」
-  fetchUrl = proxy.prefix + icalUrl;
-}
-        const text = await fetchWithTimeout(fetchUrl);
-        // それっぽい内容か最低限チェック
-        if (!text || text.indexOf("BEGIN:VEVENT") === -1) throw new Error("ICS invalid");
-        return text;
-      }catch(e){
-        lastErr = e;
-      }
-    }
-  }
-  throw lastErr || new Error("ICS fetch failed");
-}
-
-/* =========================
-   共通関数（スプシ/メニュー）
-========================= */
-function gvizUrl() {
-  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-}
-function parseGviz(text){
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  const json = text.substring(start, end + 1);
-  return JSON.parse(json);
-}
-function safeText(v){
-  return (v ?? "").toString().trim();
-}
 function isActive(v){
-  // ◯/○/true/1/yes などは全部 “販売中” 扱い
   const s = safeText(v).toLowerCase();
   return (s === "◯" || s === "○" || s === "true" || s === "1" || s === "yes" || s === "y");
 }
@@ -348,9 +260,6 @@ function isRegularCategory(cat){
   return c.includes("定番");
 }
 
-/* =========================
-   カレンダー整形
-========================= */
 function weekdayJa(dateObj){
   const w = ["日","月","火","水","木","金","土"];
   return w[dateObj.getDay()];
@@ -360,145 +269,13 @@ function formatDateMdJa(dateObj){
   const d = dateObj.getDate();
   return `${m}/${d}(${weekdayJa(dateObj)})`;
 }
-function ymdToDateLocal(ymd){
-  // ymd: YYYYMMDD -> Date(ローカル)
-  const y = Number(ymd.slice(0,4));
-  const m = Number(ymd.slice(4,6)) - 1;
-  const d = Number(ymd.slice(6,8));
-  return new Date(y, m, d, 0, 0, 0, 0);
-}
 function startOfToday(){
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
 }
-function endOfDaysFromToday(days){
-  const s = startOfToday();
-  const e = new Date(s);
-  e.setDate(e.getDate() + Number(days));
-  return e;
-}
 
-function parseIcsEvents(icsText){
-  // 超シンプルICSパーサー：DTSTART(終日)とSUMMARYだけ拾う
-  const blocks = icsText.split("BEGIN:VEVENT").slice(1);
-  const events = [];
-
-  for (const b of blocks){
-    const endIdx = b.indexOf("END:VEVENT");
-    const chunk = (endIdx >= 0) ? b.slice(0, endIdx) : b;
-
-    // DTSTART;VALUE=DATE:20260304 の想定（たまに DTSTART:20260304T... も来る）
-    const dtLine = chunk.split("\n").find(l => l.startsWith("DTSTART"));
-    const sumLine = chunk.split("\n").find(l => l.startsWith("SUMMARY"));
-    if (!dtLine || !sumLine) continue;
-
-    const dtMatch = dtLine.match(/:(\d{8})/);
-    const dateYmd = dtMatch ? dtMatch[1] : null;
-
-    const summary = sumLine.replace("SUMMARY:", "").trim();
-
-    if (!dateYmd || !summary) continue;
-    events.push({ dateYmd, summary });
-  }
-  return events;
-}
-
-function setPlaceOptions(labels){
-  const sel = document.getElementById("custPlace");
-  sel.innerHTML = `<option value="">場所を選択してください</option>`;
-  for (const label of labels){
-    const o = document.createElement("option");
-    o.value = label;
-    o.textContent = label;
-    sel.appendChild(o);
-  }
-}
-
-async function loadPlacesFromIcalRobust(){
-  const placeLoading = document.getElementById("placeLoading");
-  const sel = document.getElementById("custPlace");
-
-  try{
-    setPlaceStatusNote("");
-    showManualPlaceInput(false);
-
-    const ics = await fetchIcsRobust(ICAL_URL);
-    const events = parseIcsEvents(ics);
-
-    const today = startOfToday();
-    const endDay = endOfDaysFromToday(SHOW_DAYS);
-
-    // 今日〜SHOW_DAYS日先まで
-    const future = events
-      .map(e => ({ ...e, date: ymdToDateLocal(e.dateYmd) }))
-      .filter(e => e.date >= today && e.date <= endDay)
-      .sort((a,b) => a.date - b.date);
-
-    // 重複（同じ日付＋同じsummary）を除去
-    const seen = new Set();
-    const labels = [];
-    for (const e of future){
-      const key = e.dateYmd + "||" + e.summary;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      labels.push(`${formatDateMdJa(e.date)} ${e.summary}`);
-    }
-
-    if (labels.length === 0){
-      // 予定0件なら手入力ON（フォームは死なない）
-      setPlaceOptions([ "（予約OKの出店予定がありません：場所を手入力してください）" ]);
-      showManualPlaceInput(true);
-      setPlaceStatusNote(`※直近${SHOW_DAYS}日分を表示（0件）`);
-    }else{
-      // ✅成功→キャッシュ
-      localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify({ labels, savedAt: Date.now() }));
-      setPlaceOptions(labels);
-      setPlaceStatusNote(`※直近${SHOW_DAYS}日分を表示しています`);
-    }
-
-  }catch(e){
-    console.error(e);
-
-    // ❗失敗→キャッシュがあればそれを出す
-    const cached = localStorage.getItem(PLACE_CACHE_KEY);
-    if (cached){
-      try{
-        const obj = JSON.parse(cached);
-        if (obj && Array.isArray(obj.labels) && obj.labels.length > 0){
-          setPlaceOptions(obj.labels);
-          setPlaceStatusNote("⚠ 直近の出店予定を表示しています");
-          showManualPlaceInput(false);
-        }else{
-          // キャッシュが壊れてたら手入力
-          setPlaceOptions([ "⚠ 出店日程が読み込めません（場所を手入力してください）" ]);
-          showManualPlaceInput(true);
-          setPlaceStatusNote("⚠ 日程取得に失敗（キャッシュなし）");
-        }
-      }catch(_){
-        setPlaceOptions([ "⚠ 出店日程が読み込めません（場所を手入力してください）" ]);
-        showManualPlaceInput(true);
-        setPlaceStatusNote("⚠ 日程取得に失敗（キャッシュ破損）");
-      }
-    }else{
-      // キャッシュすら無い→手入力ON
-      setPlaceOptions([ "⚠ 出店日程が読み込めません（場所を手入力してください）" ]);
-      showManualPlaceInput(true);
-      setPlaceStatusNote("⚠ 日程取得に失敗（キャッシュなし）");
-    }
-
-  }finally{
-    if (placeLoading) placeLoading.remove();
-    // 読み込み終わったので送信判定更新
-    refreshSendButton();
-  }
-}
-
-/* =========================
-   時間選択
-========================= */
+/* ---------- 時間候補 ---------- */
 function buildTimeOptions(){
-  // 11:30〜16:00 を30分刻み、「ごろ」
   const sel = document.getElementById("custTime");
   const times = [
     "11:30ごろ","12:00ごろ","12:30ごろ","13:00ごろ","13:30ごろ",
@@ -512,9 +289,17 @@ function buildTimeOptions(){
   }
 }
 
-/* =========================
-   メニュー（スプシ）
-========================= */
+/* ---------- メニュー（GViz） ---------- */
+function gvizUrl() {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+}
+function parseGviz(text){
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  const json = text.substring(start, end + 1);
+  return JSON.parse(json);
+}
+
 async function loadMenuFromSheet(){
   const menuLoading = document.getElementById("menuLoading");
   try{
@@ -547,7 +332,6 @@ async function loadMenuFromSheet(){
 
     items.sort((a,b) => a.sort - b.sort);
 
-    // categoryごとにまとめる（出現順）
     const order = [];
     const byCat = new Map();
     for (const it of items){
@@ -571,13 +355,11 @@ async function loadMenuFromSheet(){
       menuArea.appendChild(catTag);
 
       for (const it of list){
-        // 限定/オリジナルは active=false なら “非表示”
         if (!it.active && isLimitedCategory(it.category)) continue;
 
         const row = document.createElement("div");
         row.className = "pg-row";
 
-        // 定番は active=false なら “グレー表示＆入力不可”
         if (!it.active && isRegularCategory(it.category)) row.classList.add("is-soldout");
 
         const nameBox = document.createElement("div");
@@ -599,7 +381,6 @@ async function loadMenuFromSheet(){
         menuArea.appendChild(row);
       }
     }
-
   }catch(e){
     console.error(e);
     const menuArea = document.getElementById("menuArea");
@@ -609,9 +390,158 @@ async function loadMenuFromSheet(){
   }
 }
 
-/* =========================
-   合計＆送信
-========================= */
+/* ---------- 出店日程（キャッシュ） ---------- */
+function setPlaceStatusNote(text){
+  const el = document.getElementById("placeStatusNote");
+  if (!el) return;
+  if (!text){
+    el.style.display = "none";
+    el.textContent = "";
+  }else{
+    el.style.display = "block";
+    el.textContent = text;
+  }
+}
+function showManualPlaceInput(show){
+  const wrap = document.getElementById("manualPlaceWrap");
+  if (!wrap) return;
+  wrap.style.display = show ? "block" : "none";
+}
+function getPlaceValue(){
+  const manualWrap = document.getElementById("manualPlaceWrap");
+  if (manualWrap && manualWrap.style.display !== "none"){
+    return (document.getElementById("custPlaceManual")?.value || "").trim();
+  }
+  return (document.getElementById("custPlace")?.value || "").trim();
+}
+
+function loadPlaceCache(){
+  try{
+    const raw = localStorage.getItem(PLACE_CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.ts || !Array.isArray(obj.items)) return null;
+    const age = Date.now() - obj.ts;
+    if (age > PLACE_CACHE_TTL_MS) return null;
+    return obj.items;
+  }catch(_){
+    return null;
+  }
+}
+function savePlaceCache(items){
+  try{
+    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
+  }catch(_){}
+}
+
+/* 45日フィルタ */
+function filterWithinDays(items, days){
+  const today = startOfToday();
+  const end = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+  return items.filter(x => {
+    const d = x.date instanceof Date ? x.date : new Date(x.date);
+    return d >= today && d <= end;
+  });
+}
+
+/* fetch timeout */
+async function fetchWithTimeout(url){
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), ICAL_TIMEOUT_MS);
+  try{
+    const res = await fetch(url, { cache:"no-store", signal: controller.signal });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json(); // GASはJSON返す想定
+  }finally{
+    clearTimeout(t);
+  }
+}
+
+/* GASから取得 → {items:[{date:"YYYY-MM-DD", title:"..."}, ...]} を想定 */
+async function loadPlacesFromGAS(){
+  const placeLoading = document.getElementById("placeLoading");
+  const sel = document.getElementById("custPlace");
+
+  try{
+    let data = null;
+    let lastErr = null;
+
+    for (let attempt=0; attempt<=ICAL_RETRIES; attempt++){
+      try{
+        data = await fetchWithTimeout(ICAL_PROXY_URL);
+        break;
+      }catch(e){
+        lastErr = e;
+      }
+    }
+    if (!data || !Array.isArray(data.items)) throw lastErr || new Error("No data");
+
+    // 変換
+    let list = data.items.map(it => {
+      const d = new Date(it.date + "T00:00:00");
+      return { date: d, title: safeText(it.title) };
+    }).filter(x => x.title && !isNaN(x.date.getTime()));
+
+    // 今日以降 & 45日
+    list = filterWithinDays(list, SHOW_DAYS).sort((a,b)=>a.date-b.date);
+
+    // 重複排除
+    const seen = new Set();
+    const uniq = [];
+    for (const e of list){
+      const key = e.date.toISOString().slice(0,10) + "||" + e.title;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      uniq.push(e);
+    }
+
+    // 追加
+    for (const e of uniq){
+      const label = `${formatDateMdJa(e.date)} ${e.title}`;
+      const o = document.createElement("option");
+      o.value = label;
+      o.textContent = label;
+      sel.appendChild(o);
+    }
+
+    if (uniq.length === 0){
+      const o = document.createElement("option");
+      o.value = "";
+      o.textContent = "（45日以内の予約OK予定がありません）";
+      sel.appendChild(o);
+    }
+
+    // 成功したらキャッシュ保存
+    savePlaceCache(uniq.map(e => ({ date: e.date.toISOString().slice(0,10), title: e.title })));
+    setPlaceStatusNote("");        // note消す
+    showManualPlaceInput(false);   // 手入力隠す
+
+  }catch(e){
+    console.error(e);
+
+    // キャッシュがあればそれを出す（フォームは生きる）
+    const cached = loadPlaceCache();
+    if (cached && cached.length){
+      for (const it of cached){
+        const d = new Date(it.date + "T00:00:00");
+        const label = `${formatDateMdJa(d)} ${it.title}`;
+        const o = document.createElement("option");
+        o.value = label;
+        o.textContent = label;
+        sel.appendChild(o);
+      }
+      setPlaceStatusNote("⚠ 日程取得に失敗したため、前回の予定（キャッシュ）を表示しています");
+      showManualPlaceInput(false);
+    }else{
+      setPlaceStatusNote("⚠ 日程取得に失敗（キャッシュなし）→ 手入力で予約できます");
+      showManualPlaceInput(true);
+    }
+  }finally{
+    if (placeLoading) placeLoading.remove();
+  }
+}
+
+/* ---------- 合計/送信 ---------- */
 function calcTotal(){
   const inputs = Array.from(document.querySelectorAll(".pg-qty"));
   let total = 0;
@@ -626,7 +556,7 @@ function calcTotal(){
 
 function refreshSendButton(){
   const name = document.getElementById("custName").value.trim();
-  const place = getPlaceValue(); // ★自動/手入力どっちでもOK
+  const place = getPlaceValue();
   const time  = document.getElementById("custTime").value;
   const sum = calcTotal();
 
@@ -645,7 +575,7 @@ function refreshSendButton(){
 function buildAndSendLine(){
   const inputs = Array.from(document.querySelectorAll(".pg-qty"));
   const name = document.getElementById("custName").value.trim();
-  const place = getPlaceValue(); // ★自動/手入力どっちでもOK
+  const place = getPlaceValue();
   const time  = document.getElementById("custTime").value;
 
   let details = "";
@@ -677,24 +607,17 @@ ${details}──────────
   window.location.href = url;
 }
 
-/* =========================
-   起動
-========================= */
 document.addEventListener("DOMContentLoaded", async () => {
   buildTimeOptions();
 
-  // 並列で読み込み（速い）
   await Promise.all([
     loadMenuFromSheet(),
-    loadPlacesFromIcalRobust()
+    loadPlacesFromGAS()
   ]);
 
-  // 監視
   document.getElementById("custName").addEventListener("input", refreshSendButton);
   document.getElementById("custPlace").addEventListener("change", refreshSendButton);
   document.getElementById("custTime").addEventListener("change", refreshSendButton);
-
-  // 手入力欄も監視
   document.getElementById("custPlaceManual").addEventListener("input", refreshSendButton);
 
   document.addEventListener("input", (e) => {
