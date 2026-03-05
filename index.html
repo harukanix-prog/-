@@ -11,46 +11,103 @@
       --line:#06C755;
       --danger:#e74c3c;
       --bg:#ffffff;
-      --muted:#999;
       --card:#fdfdfd;
       --border:#eee;
+      --muted:#777;
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      color:#333;
+      -webkit-text-size-adjust: 100%;
+    }
+    #pg-form{
+      max-width:720px;
+      margin:0 auto;
+      padding:12px 12px 150px;
+    }
+    h3{
+      text-align:center;
+      color:var(--blue);
+      margin:10px 0 16px;
+      font-size:20px;
+      font-weight:900;
     }
 
-    body{ margin:0; background:var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; color:#333; }
-    #pg-form{ max-width: 720px; margin:0 auto; padding:12px 12px 140px; }
-    h3{ text-align:center; color:var(--blue); margin:10px 0 16px; }
-
-    .pg-card{ background:var(--card); border:1px solid var(--border); padding:12px; border-radius:10px; margin-bottom:10px; }
-    .pg-title{ font-weight:800; font-size:15px; margin-bottom:6px; display:block; }
+    .pg-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:12px;
+      border-radius:12px;
+      margin-bottom:10px;
+    }
+    .pg-title{
+      font-weight:900;
+      font-size:15px;
+      margin-bottom:8px;
+      display:block;
+    }
 
     .pg-input-field{
-      width:100%; padding:12px; border:1px solid #ccc; border-radius:8px;
-      font-size:17px; box-sizing:border-box;
+      width:100%;
+      padding:14px 12px;
+      border:1px solid #ccc;
+      border-radius:10px;
+      font-size:18px;
+      box-sizing:border-box;
+      background:#fff;
     }
 
-    /* スマホで字が小さい問題対策 */
-    .pg-input-field, .pg-row, .pg-name-box { -webkit-text-size-adjust: 100%; }
-
     .pg-cat-tag{
-      background:#34495e; color:#fff; padding:6px 10px; border-radius:8px;
-      margin:18px 0 10px; font-size:13px; font-weight:800;
+      background:#34495e;
+      color:#fff;
+      padding:7px 10px;
+      border-radius:10px;
+      margin:18px 0 10px;
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:0.2px;
     }
 
     .pg-row{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 8px; border-bottom:1px solid #eee; background:#fff;
-      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 10px;
+      border:1px solid #eee;
+      background:#fff;
+      border-radius:12px;
       margin-bottom:8px;
+      gap:10px;
     }
 
-    .pg-name-box{ flex:1; font-weight:800; font-size:16px; line-height:1.25; }
-    .pg-price-tag{ color:var(--danger); font-size:12px; margin-left:6px; font-weight:700; }
+    .pg-name-box{
+      flex:1;
+      font-weight:900;
+      font-size:17px;
+      line-height:1.25;
+    }
+    .pg-price-tag{
+      color:var(--danger);
+      font-size:12px;
+      margin-left:8px;
+      font-weight:900;
+      white-space:nowrap;
+    }
 
     .pg-qty{
-      width:86px; min-width:86px; height:44px;
-      text-align:center; font-size:20px; font-weight:900;
-      border:2px solid var(--blue); border-radius:10px; margin-left:10px;
+      width:92px;
+      min-width:92px;
+      height:46px;
+      text-align:center;
+      font-size:20px;
+      font-weight:900;
+      border:2px solid var(--blue);
+      border-radius:12px;
       -webkit-appearance:none;
+      appearance:none;
+      background:#fff;
     }
 
     /* 売り切れグレー表示（定番） */
@@ -62,22 +119,52 @@
       pointer-events:none;
     }
 
-    .pg-footer-bar{
-      position:fixed; bottom:0; left:0; width:100%;
-      background:#fff; padding:14px 12px; border-top:3px solid var(--blue);
-      text-align:center; z-index:99999; box-shadow: 0 -3px 15px rgba(0,0,0,0.08);
+    .pg-help{
+      font-size:14px;
+      color:#666;
+      margin-top:12px;
+      line-height:1.5;
     }
-    .pg-total-txt{ font-size:18px; font-weight:900; margin-bottom:10px; }
+
+    .pg-footer-bar{
+      position:fixed;
+      bottom:0;
+      left:0;
+      width:100%;
+      background:#fff;
+      padding:14px 12px;
+      border-top:3px solid var(--blue);
+      text-align:center;
+      z-index:99999;
+      box-shadow:0 -3px 15px rgba(0,0,0,0.08);
+    }
+    .pg-total-txt{
+      font-size:18px;
+      font-weight:900;
+      margin-bottom:10px;
+    }
     .pg-btn-line{
-      display:block; background:var(--line); color:#fff; text-decoration:none;
-      padding:16px; border-radius:999px; font-weight:900; font-size:18px;
+      display:block;
+      background:var(--line);
+      color:#fff;
+      text-decoration:none;
+      padding:16px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:18px;
       box-shadow:0 4px 0 #05a346;
     }
     .pg-btn-line.disabled{
-      background:#cfcfcf; box-shadow:none; pointer-events:none;
+      background:#cfcfcf;
+      box-shadow:none;
+      pointer-events:none;
     }
-    .pg-help{
-      font-size:13px; color:#666; margin-top:10px; line-height:1.4;
+
+    /* 読み込み中表示 */
+    .pg-loading{
+      color:var(--muted);
+      font-size:14px;
+      padding:10px 0;
     }
   </style>
 </head>
@@ -88,36 +175,27 @@
 
     <div class="pg-card">
       <span class="pg-title">■ お名前</span>
-      <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎">
+      <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎" />
     </div>
 
     <div class="pg-card">
       <span class="pg-title">■ 出店場所を選択</span>
       <select id="custPlace" class="pg-input-field">
         <option value="">場所を選択してください</option>
-        <!-- ★ここは「iCalから自動生成」に後で置き換え可能。今は手動でもOK -->
       </select>
+      <div id="placeLoading" class="pg-loading">出店日程を読み込み中…</div>
     </div>
 
     <div class="pg-card">
       <span class="pg-title">■ お受取り希望時間</span>
       <select id="custTime" class="pg-input-field">
         <option value="">時間を選択してください</option>
-        <option value="11:30ごろ">11:30ごろ</option>
-        <option value="12:00ごろ">12:00ごろ</option>
-        <option value="12:30ごろ">12:30ごろ</option>
-        <option value="13:00ごろ">13:00ごろ</option>
-        <option value="13:30ごろ">13:30ごろ</option>
-        <option value="14:00ごろ">14:00ごろ</option>
-        <option value="14:30ごろ">14:30ごろ</option>
-        <option value="15:00ごろ">15:00ごろ</option>
-        <option value="15:30ごろ">15:30ごろ</option>
-        <option value="16:00ごろ">16:00ごろ</option>
       </select>
     </div>
 
-    <!-- ここに「シートから読み込んだメニュー」が入る -->
-    <div id="menuArea"></div>
+    <div id="menuArea">
+      <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
+    </div>
 
     <div class="pg-help">
       ※入力欄が表示されていない商品は、時間外または売り切れとなります。<br>
@@ -126,46 +204,52 @@
   </div>
 
   <div class="pg-footer-bar">
-    <div class="pg-total-txt">合計：<span id="total-val" style="color:#e74c3c; font-size:24px;">0</span>円</div>
-    <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">お名前・場所・時間・メニューを入力してね</a>
+    <div class="pg-total-txt">
+      合計：<span id="total-val" style="color:#e74c3c; font-size:26px;">0</span>円
+    </div>
+    <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">
+      お名前・場所・時間・メニューを入力してね
+    </a>
   </div>
 
 <script>
 /* =========================
-   ✅ ここだけ書き換える
+   ✅ ここだけ書き換えゾーン
 ========================= */
+// ① メニュー（Googleスプレッドシート）
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
-const SHEET_NAME     = "menu";  // ← シート名（例：menu）
+const SHEET_NAME     = "menu";  // はるちゃんのシート名
+
+// ② 出店場所（予約OKカレンダー iCal）
+const ICAL_URL = "https://calendar.google.com/calendar/ical/penguin.kitchen8%40gmail.com/public/basic.ics";
+
 /* ========================= */
 
-const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?"; // 改行OK（今これが安定）
+const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
+
+// CORS回避（Googleカレンダーicsをブラウザでfetchするため）
+const CORS_PROXY = "https://api.allorigins.win/raw?url="; 
+// もしここが不調なら ↓ に差し替え（どちらか動けばOK）
+// const CORS_PROXY = "https://cors.isomorphic-git.org/";
+// ※差し替える場合は、fetchUrl = CORS_PROXY + encodeURIComponent(url) の行も少し変える必要あり（言ってくれたら直す）
 
 function gvizUrl() {
   return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
 }
 
 function parseGviz(text){
-  // gvizは JSON そのままじゃなくて、関数で包まれて返る
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   const json = text.substring(start, end + 1);
   return JSON.parse(json);
 }
 
-function todayYmd(){
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
-
 function safeText(v){
   return (v ?? "").toString().trim();
 }
 
-function isTruthyActive(v){
-  // ◯ / ○ / TRUE / true / 1 など全部OKにする
+function isActive(v){
+  // ◯/○/true/1/yes などは全部 “販売中” 扱い
   const s = safeText(v).toLowerCase();
   return (s === "◯" || s === "○" || s === "true" || s === "1" || s === "yes" || s === "y");
 }
@@ -175,97 +259,229 @@ function isLimitedCategory(cat){
   return c.includes("限定") || c.includes("オリジナル");
 }
 
-async function loadMenuFromSheet(){
-  const res = await fetch(gvizUrl(), { cache: "no-store" });
-  const txt = await res.text();
-  const data = parseGviz(txt);
+function isRegularCategory(cat){
+  const c = safeText(cat);
+  return c.includes("定番");
+}
 
-  const cols = data.table.cols.map(c => (c.label || "").trim());
-  const rows = data.table.rows;
+function weekdayJa(dateObj){
+  const w = ["日","月","火","水","木","金","土"];
+  return w[dateObj.getDay()];
+}
 
-  // 期待カラム：name, price, active, sort, category, note
-  const idx = (name) => cols.findIndex(c => c === name);
+function formatDateMdJa(dateObj){
+  const m = dateObj.getMonth()+1;
+  const d = dateObj.getDate();
+  return `${m}/${d}(${weekdayJa(dateObj)})`;
+}
 
-  const iName = idx("name");
-  const iPrice = idx("price");
-  const iActive = idx("active");
-  const iSort = idx("sort");
-  const iCat = idx("category");
-  const iNote = idx("note");
+function ymdToDateLocal(ymd){
+  // ymd: YYYYMMDD -> Date(ローカル)
+  const y = Number(ymd.slice(0,4));
+  const m = Number(ymd.slice(4,6)) - 1;
+  const d = Number(ymd.slice(6,8));
+  return new Date(y, m, d, 0, 0, 0, 0);
+}
 
-  const items = rows.map(r => {
-    const cells = r.c.map(x => x ? (x.v ?? "") : "");
-    return {
-      name: safeText(cells[iName]),
-      price: Number(cells[iPrice] || 0),
-      active: isTruthyActive(cells[iActive]),
-      sort: Number(cells[iSort] || 9999),
-      category: safeText(cells[iCat]),
-      note: safeText(cells[iNote]),
-    };
-  }).filter(x => x.name && x.price);
+function startOfToday(){
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
+}
 
-  // sort昇順
-  items.sort((a,b) => a.sort - b.sort);
-
-  // categoryごとに並べる
-  const byCat = new Map();
-  for (const it of items){
-    const cat = it.category || "メニュー";
-    if (!byCat.has(cat)) byCat.set(cat, []);
-    byCat.get(cat).push(it);
-  }
-
-  const menuArea = document.getElementById("menuArea");
-  menuArea.innerHTML = "";
-
-  for (const [cat, list] of byCat.entries()){
-    const catTag = document.createElement("div");
-    catTag.className = "pg-cat-tag";
-    catTag.textContent = `✨ ${cat}`;
-    menuArea.appendChild(catTag);
-
-    for (const it of list){
-      // 限定/オリジナルは active=false なら非表示
-      if (!it.active && isLimitedCategory(it.category)) continue;
-
-      const row = document.createElement("div");
-      row.className = "pg-row";
-      if (!it.active) row.classList.add("is-soldout");
-
-      const nameBox = document.createElement("div");
-      nameBox.className = "pg-name-box";
-      nameBox.innerHTML = `${it.name}<span class="pg-price-tag">${it.price}円</span>`;
-
-      const qty = document.createElement("input");
-      qty.type = "number";
-      qty.className = "pg-qty";
-      qty.min = "0";
-      qty.value = "0";
-      qty.dataset.name = it.name;
-      qty.dataset.price = String(it.price);
-      qty.disabled = !it.active;
-
-      row.appendChild(nameBox);
-      row.appendChild(qty);
-      menuArea.appendChild(row);
-    }
+function buildTimeOptions(){
+  // 11:30〜16:00 を30分刻み、「ごろ」
+  const sel = document.getElementById("custTime");
+  const times = [
+    "11:30ごろ","12:00ごろ","12:30ごろ","13:00ごろ","13:30ごろ",
+    "14:00ごろ","14:30ごろ","15:00ごろ","15:30ごろ","16:00ごろ"
+  ];
+  for (const t of times){
+    const o = document.createElement("option");
+    o.value = t;
+    o.textContent = t;
+    sel.appendChild(o);
   }
 }
 
-// function setupPlaceTempOptions(){
-  // いったん手動の仮データ（あとでiCal自動生成に置き換えできる）
+async function loadMenuFromSheet(){
+  const menuLoading = document.getElementById("menuLoading");
+  try{
+    const res = await fetch(gvizUrl(), { cache: "no-store" });
+    const txt = await res.text();
+    const data = parseGviz(txt);
+
+    const cols = data.table.cols.map(c => (c.label || "").trim());
+    const rows = data.table.rows;
+
+    const idx = (name) => cols.findIndex(c => c === name);
+
+    const iName  = idx("name");
+    const iPrice = idx("price");
+    const iAct   = idx("active");
+    const iSort  = idx("sort");
+    const iCat   = idx("category");
+    const iNote  = idx("note");
+
+    const items = rows.map(r => {
+      const cells = r.c.map(x => x ? (x.v ?? "") : "");
+      return {
+        name: safeText(cells[iName]),
+        price: Number(cells[iPrice] || 0),
+        active: isActive(cells[iAct]),
+        sort: Number(cells[iSort] || 9999),
+        category: safeText(cells[iCat]),
+        note: safeText(cells[iNote]),
+      };
+    }).filter(x => x.name && x.price);
+
+    items.sort((a,b) => a.sort - b.sort);
+
+    // categoryごとにまとめる（出現順）
+    const order = [];
+    const byCat = new Map();
+    for (const it of items){
+      const cat = it.category || "メニュー";
+      if (!byCat.has(cat)){
+        byCat.set(cat, []);
+        order.push(cat);
+      }
+      byCat.get(cat).push(it);
+    }
+
+    const menuArea = document.getElementById("menuArea");
+    menuArea.innerHTML = "";
+
+    for (const cat of order){
+      const list = byCat.get(cat);
+
+      const catTag = document.createElement("div");
+      catTag.className = "pg-cat-tag";
+      catTag.textContent = `✨ ${cat}`;
+      menuArea.appendChild(catTag);
+
+      for (const it of list){
+        // 限定/オリジナルは active=false なら “非表示”
+        if (!it.active && isLimitedCategory(it.category)) continue;
+
+        const row = document.createElement("div");
+        row.className = "pg-row";
+
+        // 定番は active=false なら “グレー表示＆入力不可”
+        if (!it.active && isRegularCategory(it.category)) row.classList.add("is-soldout");
+
+        const nameBox = document.createElement("div");
+        nameBox.className = "pg-name-box";
+        nameBox.innerHTML = `${it.name}<span class="pg-price-tag">${it.price}円</span>`;
+
+        const qty = document.createElement("input");
+        qty.type = "number";
+        qty.className = "pg-qty";
+        qty.min = "0";
+        qty.value = "0";
+        qty.dataset.name = it.name;
+        qty.dataset.price = String(it.price);
+
+        // 定番で売り切れなら入力不可
+        if (!it.active && isRegularCategory(it.category)) qty.disabled = true;
+
+        row.appendChild(nameBox);
+        row.appendChild(qty);
+        menuArea.appendChild(row);
+      }
+    }
+
+  }catch(e){
+    console.error(e);
+    const menuArea = document.getElementById("menuArea");
+    menuArea.innerHTML = `<div class="pg-loading">⚠️ メニューが読み込めませんでした。スプシの「ウェブに公開」または「リンクを知っている全員が閲覧可」を確認してね。</div>`;
+  }finally{
+    if (menuLoading) menuLoading.remove();
+  }
+}
+
+function parseIcsEvents(icsText){
+  // 超シンプルICSパーサー：DTSTART(終日)とSUMMARYだけ拾う
+  const blocks = icsText.split("BEGIN:VEVENT").slice(1);
+  const events = [];
+
+  for (const b of blocks){
+    const endIdx = b.indexOf("END:VEVENT");
+    const chunk = (endIdx >= 0) ? b.slice(0, endIdx) : b;
+
+    const dtLine = chunk.split("\n").find(l => l.startsWith("DTSTART"));
+    const sumLine = chunk.split("\n").find(l => l.startsWith("SUMMARY"));
+
+    if (!dtLine || !sumLine) continue;
+
+    // DTSTART;VALUE=DATE:20260304 みたいなのを想定
+    const dtMatch = dtLine.match(/:(\d{8})/);
+    const dateYmd = dtMatch ? dtMatch[1] : null;
+
+    // SUMMARY:テキスト
+    const summary = sumLine.replace("SUMMARY:", "").trim();
+
+    if (!dateYmd || !summary) continue;
+
+    events.push({ dateYmd, summary });
+  }
+  return events;
+}
+
+async function loadPlacesFromIcal(){
+  const placeLoading = document.getElementById("placeLoading");
   const sel = document.getElementById("custPlace");
-  const opts = [
-    "3/5(木) 喫茶ドーベル",
-    "3/6(金) イオン",
-    "3/13(金) アイズ商会",
-  ];
-  for (const v of opts){
+
+  try{
+    const fetchUrl = CORS_PROXY + encodeURIComponent(ICAL_URL);
+    const res = await fetch(fetchUrl, { cache: "no-store" });
+    const ics = await res.text();
+
+    const events = parseIcsEvents(ics);
+
+    const today = startOfToday();
+
+    // 今日以降だけ
+    const future = events
+      .map(e => ({ ...e, date: ymdToDateLocal(e.dateYmd) }))
+      .filter(e => e.date >= today)
+      .sort((a,b) => a.date - b.date);
+
+    // 重複（同じ日付＋同じsummary）を除去
+    const seen = new Set();
+    const uniq = [];
+    for (const e of future){
+      const key = e.dateYmd + "||" + e.summary;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      uniq.push(e);
+    }
+
+    // option追加
+    for (const e of uniq){
+      const label = `${formatDateMdJa(e.date)} ${e.summary}`;
+      const o = document.createElement("option");
+      o.value = label;
+      o.textContent = label;
+      sel.appendChild(o);
+    }
+
+    // 予定0件ならメッセージ
+    if (uniq.length === 0){
+      const o = document.createElement("option");
+      o.value = "";
+      o.textContent = "（予約OKの出店予定がありません）";
+      sel.appendChild(o);
+    }
+
+  }catch(e){
+    console.error(e);
+    // 失敗してもフォームが死なないようにする
     const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
+    o.value = "";
+    o.textContent = "⚠️ 出店日程が読み込めません（後で再読込してね）";
     sel.appendChild(o);
+  }finally{
+    if (placeLoading) placeLoading.remove();
   }
 }
 
@@ -336,11 +552,13 @@ ${details}──────────
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // メニュー読込
-  await loadMenuFromSheet();
+  buildTimeOptions();
 
-  // 場所は仮（あとでiCalから自動にできる）
-  setupPlaceTempOptions();
+  // 並列で読み込み（速くなる）
+  await Promise.all([
+    loadMenuFromSheet(),
+    loadPlacesFromIcal()
+  ]);
 
   // 監視
   document.getElementById("custName").addEventListener("input", refreshSendButton);
@@ -361,69 +579,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   refreshSendButton();
 });
-  /* ===============================
-Googleカレンダー → 出店場所生成
-=============================== */
-
-const CALENDAR_URL =
-"https://calendar.google.com/calendar/ical/penguin.kitchen8%40gmail.com/public/basic.ics";
-
-async function loadCalendarPlaces(){
-
-  const sel = document.getElementById("custPlace");
-
-  try{
-
-    const proxy =
-    "https://api.allorigins.win/raw?url=" + encodeURIComponent(CALENDAR_URL);
-
-    const res = await fetch(proxy);
-    const text = await res.text();
-
-    const events = text.split("BEGIN:VEVENT");
-
-    const today = new Date();
-    const limit = new Date();
-    limit.setDate(today.getDate()+60);
-
-    const weekdays = ["日","月","火","水","木","金","土"];
-
-    for(const e of events){
-
-      const dateMatch = e.match(/DTSTART;VALUE=DATE:(\d{8})/);
-      const nameMatch = e.match(/SUMMARY:(.+)/);
-
-      if(!dateMatch || !nameMatch) continue;
-
-      const y = dateMatch[1].slice(0,4);
-      const m = dateMatch[1].slice(4,6);
-      const d = dateMatch[1].slice(6,8);
-
-      const date = new Date(`${y}-${m}-${d}`);
-
-      if(date < today) continue;
-      if(date > limit) continue;
-
-      const place = nameMatch[1];
-
-      const label =
-      `${Number(m)}/${Number(d)}(${weekdays[date.getDay()]}) ${place}`;
-
-      const opt = document.createElement("option");
-      opt.value = label;
-      opt.textContent = label;
-
-      sel.appendChild(opt);
-
-    }
-
-  }catch(err){
-    console.error("calendar load error",err);
-  }
-
-}
-
-loadCalendarPlaces();
 </script>
 </body>
 </html>
