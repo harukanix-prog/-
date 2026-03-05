@@ -361,6 +361,69 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   refreshSendButton();
 });
+  /* ===============================
+Googleカレンダー → 出店場所生成
+=============================== */
+
+const CALENDAR_URL =
+"https://calendar.google.com/calendar/ical/penguin.kitchen8%40gmail.com/public/basic.ics";
+
+async function loadCalendarPlaces(){
+
+  const sel = document.getElementById("custPlace");
+
+  try{
+
+    const proxy =
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent(CALENDAR_URL);
+
+    const res = await fetch(proxy);
+    const text = await res.text();
+
+    const events = text.split("BEGIN:VEVENT");
+
+    const today = new Date();
+    const limit = new Date();
+    limit.setDate(today.getDate()+60);
+
+    const weekdays = ["日","月","火","水","木","金","土"];
+
+    for(const e of events){
+
+      const dateMatch = e.match(/DTSTART;VALUE=DATE:(\d{8})/);
+      const nameMatch = e.match(/SUMMARY:(.+)/);
+
+      if(!dateMatch || !nameMatch) continue;
+
+      const y = dateMatch[1].slice(0,4);
+      const m = dateMatch[1].slice(4,6);
+      const d = dateMatch[1].slice(6,8);
+
+      const date = new Date(`${y}-${m}-${d}`);
+
+      if(date < today) continue;
+      if(date > limit) continue;
+
+      const place = nameMatch[1];
+
+      const label =
+      `${Number(m)}/${Number(d)}(${weekdays[date.getDay()]}) ${place}`;
+
+      const opt = document.createElement("option");
+      opt.value = label;
+      opt.textContent = label;
+
+      sel.appendChild(opt);
+
+    }
+
+  }catch(err){
+    console.error("calendar load error",err);
+  }
+
+}
+
+loadCalendarPlaces();
 </script>
 </body>
 </html>
