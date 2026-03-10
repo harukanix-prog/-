@@ -15,7 +15,10 @@
       --muted:#777;
       --beige:#f6efe7;
       --gold:#f0c36d;
+      --badge-bg:#fff3cd;
+      --badge-text:#8a5a00;
     }
+
     body{
       margin:0;
       background:#f6f6f6;
@@ -23,12 +26,14 @@
       color:#333;
       -webkit-text-size-adjust:100%;
     }
+
     #pg-form{
       max-width:720px;
       margin:0 auto;
       padding:12px 12px 180px;
       box-sizing:border-box;
     }
+
     h1{
       text-align:center;
       color:#333;
@@ -36,6 +41,7 @@
       font-size:20px;
       font-weight:900;
     }
+
     .pg-fixed-info{
       background:#fff;
       border-radius:12px;
@@ -46,6 +52,7 @@
       font-size:15px;
       font-weight:700;
     }
+
     .pg-info-box{
       background:#fff8e8;
       border:2px solid var(--gold);
@@ -53,8 +60,22 @@
       border-radius:16px;
       margin:12px 0 18px 0;
       font-size:14px;
-      line-height:1.8;
+      line-height:1.9;
     }
+
+    .pg-menu-image-wrap{
+      margin-bottom:20px;
+    }
+
+    .pg-menu-image{
+      width:100%;
+      display:block;
+      border-radius:12px;
+      margin-bottom:20px;
+      background:#fff;
+      border:1px solid #eee;
+    }
+
     .pg-card{
       background:#fff;
       border:1px solid var(--border);
@@ -63,12 +84,14 @@
       margin-bottom:14px;
       box-shadow:0 2px 8px rgba(0,0,0,0.05);
     }
+
     .pg-title{
       font-weight:900;
       font-size:15px;
       margin-bottom:8px;
       display:block;
     }
+
     .pg-input-field{
       width:100%;
       padding:14px 12px;
@@ -78,6 +101,7 @@
       box-sizing:border-box;
       background:#fff;
     }
+
     .pg-cat-tag{
       background:var(--beige);
       color:#6b4f3a;
@@ -88,72 +112,106 @@
       font-weight:900;
       border:1px solid #eadfd3;
     }
+
     .pg-row{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      padding:14px 6px;
+      padding:12px 8px;
       border-bottom:1px solid #eee;
       background:#fff;
       gap:10px;
     }
+
+    .pg-item-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex:1;
+      min-width:0;
+    }
+
+    .pg-thumb{
+      width:56px;
+      height:56px;
+      object-fit:cover;
+      border-radius:10px;
+      border:1px solid #eee;
+      background:#fafafa;
+      flex-shrink:0;
+    }
+
     .pg-name-box{
       flex:1;
       min-width:0;
-      font-weight:900;
-      font-size:17px;
-      line-height:1.3;
     }
+
+    .pg-badge{
+      display:inline-block;
+      background:var(--badge-bg);
+      color:var(--badge-text);
+      font-size:12px;
+      font-weight:900;
+      line-height:1;
+      padding:6px 8px;
+      border-radius:999px;
+      margin-bottom:6px;
+    }
+
+    .pg-item-name{
+      font-weight:900;
+      font-size:16px;
+      line-height:1.35;
+      word-break:break-word;
+    }
+
     .pg-price-tag{
       color:var(--danger);
       font-size:13px;
-      margin-left:8px;
+      margin-top:4px;
       font-weight:900;
-      white-space:nowrap;
+      display:block;
     }
+
     .pg-qty-wrap{
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
-      gap:10px;
-      min-width:128px;
-      padding-right:4px;
+      width:64px;
+      flex-shrink:0;
     }
-    .pg-qty-btn{
-      width:42px;
+
+    .pg-qty-input{
+      width:100%;
       height:42px;
-      border:none;
-      border-radius:999px;
-      background:var(--blue);
-      color:#fff;
-      font-size:28px;
+      border:1px solid #ccc;
+      border-radius:10px;
+      font-size:18px;
       font-weight:900;
-      line-height:1;
-      cursor:pointer;
-    }
-    .pg-qty-num{
-      width:24px;
       text-align:center;
-      font-size:20px;
-      font-weight:900;
-    }
-    .pg-soldout{
+      box-sizing:border-box;
+      background:#f3f3f3;
       color:#999;
-      font-size:14px;
-      font-weight:900;
-      min-width:64px;
-      text-align:right;
-      padding-right:6px;
+      appearance:textfield;
+      -moz-appearance:textfield;
     }
-    .is-soldout{
-      opacity:0.45;
+
+    .pg-qty-input::-webkit-outer-spin-button,
+    .pg-qty-input::-webkit-inner-spin-button{
+      -webkit-appearance:none;
+      margin:0;
     }
+
+    .pg-qty-input.has-value{
+      background:#fff;
+      color:#333;
+      border-color:#3498db;
+    }
+
     .pg-help{
       font-size:14px;
       color:#666;
       margin-top:16px;
-      line-height:1.7;
+      line-height:1.8;
     }
+
     .pg-footer-bar{
       position:fixed;
       bottom:0;
@@ -167,11 +225,13 @@
       box-shadow:0 -3px 15px rgba(0,0,0,0.08);
       box-sizing:border-box;
     }
+
     .pg-total-txt{
       font-size:18px;
       font-weight:900;
       margin-bottom:10px;
     }
+
     .pg-btn-line{
       display:block;
       background:var(--line);
@@ -183,15 +243,36 @@
       font-size:18px;
       box-shadow:0 4px 0 #05a346;
     }
+
     .pg-btn-line.disabled{
       background:#cfcfcf;
       box-shadow:none;
       pointer-events:none;
     }
+
     .pg-loading{
       color:var(--muted);
       font-size:14px;
       padding:10px 0;
+    }
+
+    @media (max-width: 480px){
+      .pg-row{
+        padding:12px 4px;
+      }
+      .pg-thumb{
+        width:52px;
+        height:52px;
+      }
+      .pg-item-name{
+        font-size:15px;
+      }
+      .pg-qty-wrap{
+        width:58px;
+      }
+      .pg-qty-input{
+        font-size:17px;
+      }
     }
   </style>
 </head>
@@ -208,12 +289,14 @@
 
     <div class="pg-info-box">
       🐧 事前予約でスムーズにお渡しできます<br><br>
-      📱 お会計は当日キッチンカーでOK<br>
-      （現金・各種キャッシュレス対応）<br><br>
+      📱 お支払いは当日キッチンカーでの現地決済です<br>
+      （現金・PayPayなどQR決済・クレジットカード対応）<br><br>
       ✨ 混雑時も予約のお客様を優先してお渡しします<br><br>
       ※こちらは事前注文のみの受付です<br>
-      ※お支払いは当日、キッチンカーにてお願いいたします
+      ※ご注文内容の訂正や補足は、LINEメッセージでお気軽にお知らせください
     </div>
+
+    <div id="menuImageArea"></div>
 
     <div class="pg-card">
       <span class="pg-title">■ お名前</span>
@@ -232,7 +315,7 @@
     </div>
 
     <div class="pg-help">
-      ※細かいご要望はLINEでお気軽にお知らせください。<br>
+      ※ご注文内容の訂正や補足は、LINEメッセージでお気軽にお知らせください。<br>
       ※売り切れ商品は表示されない場合があります。
     </div>
   </div>
@@ -260,7 +343,9 @@ const TIMES = [
   "15:00","15:15","15:30"
 ];
 
-function safeText(v){ return (v ?? "").toString().trim(); }
+function safeText(v){
+  return (v ?? "").toString().trim();
+}
 
 function parseGviz(text){
   const start = text.indexOf("{");
@@ -274,12 +359,12 @@ function gvizUrl() {
 }
 
 function isActive(v){
-  return v === true || v === "TRUE" || v === "true" || v === 1 || v === "1";
+  const s = safeText(v);
+  return v === true || s === "TRUE" || s === "true" || s === "1" || s === "✔";
 }
 
-function isLimitedCategory(cat){
-  const c = safeText(cat);
-  return c.includes("限定") || c.includes("オリジナル");
+function isHeaderCategory(cat){
+  return safeText(cat).toLowerCase() === "header";
 }
 
 function buildTimeOptions(){
@@ -287,13 +372,120 @@ function buildTimeOptions(){
   for (const t of TIMES){
     const o = document.createElement("option");
     o.value = t;
-    o.textContent = `${t}`;
+    o.textContent = t;
     sel.appendChild(o);
   }
 }
 
+function renderHeaderImages(headerItems){
+  const imageArea = document.getElementById("menuImageArea");
+  imageArea.innerHTML = "";
+
+  const validImages = headerItems.filter(item => safeText(item.image));
+
+  if (!validImages.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "pg-menu-image-wrap";
+
+  for (const item of validImages){
+    const img = document.createElement("img");
+    img.className = "pg-menu-image";
+    img.src = item.image;
+    img.alt = item.name || "メニュー画像";
+    img.loading = "lazy";
+    wrap.appendChild(img);
+  }
+
+  imageArea.appendChild(wrap);
+}
+
+function makeQtyInput(item){
+  const wrap = document.createElement("div");
+  wrap.className = "pg-qty-wrap";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.inputMode = "numeric";
+  input.min = "0";
+  input.max = "20";
+  input.step = "1";
+  input.value = "0";
+  input.className = "pg-qty-input";
+  input.dataset.name = item.name;
+  input.dataset.price = String(item.price);
+
+  const updateState = () => {
+    let val = parseInt(input.value, 10);
+
+    if (isNaN(val) || val < 0) val = 0;
+    if (val > 20) val = 20;
+
+    input.value = String(val);
+
+    if (val > 0){
+      input.classList.add("has-value");
+    }else{
+      input.classList.remove("has-value");
+    }
+
+    updateTotalAndButton();
+  };
+
+  input.addEventListener("input", updateState);
+  input.addEventListener("change", updateState);
+  input.addEventListener("blur", updateState);
+
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function makeMenuRow(item){
+  const row = document.createElement("div");
+  row.className = "pg-row";
+
+  const left = document.createElement("div");
+  left.className = "pg-item-left";
+
+  if (safeText(item.image)){
+    const img = document.createElement("img");
+    img.className = "pg-thumb";
+    img.src = item.image;
+    img.alt = item.name;
+    img.loading = "lazy";
+    left.appendChild(img);
+  }
+
+  const nameBox = document.createElement("div");
+  nameBox.className = "pg-name-box";
+
+  if (safeText(item.badge)){
+    const badge = document.createElement("div");
+    badge.className = "pg-badge";
+    badge.textContent = item.badge;
+    nameBox.appendChild(badge);
+  }
+
+  const name = document.createElement("div");
+  name.className = "pg-item-name";
+  name.textContent = item.name;
+  nameBox.appendChild(name);
+
+  const price = document.createElement("span");
+  price.className = "pg-price-tag";
+  price.textContent = `${item.price}円`;
+  nameBox.appendChild(price);
+
+  left.appendChild(nameBox);
+  row.appendChild(left);
+  row.appendChild(makeQtyInput(item));
+
+  return row;
+}
+
 async function loadMenuFromSheet(){
   const menuArea = document.getElementById("menuArea");
+
   try{
     const res = await fetch(gvizUrl(), { cache: "no-store" });
     const txt = await res.text();
@@ -304,11 +496,14 @@ async function loadMenuFromSheet(){
 
     const idx = (name) => cols.findIndex(c => c === name);
 
-    const iName  = idx("name");
-    const iPrice = idx("price");
-    const iAct   = idx("active");
-    const iSort  = idx("sort");
-    const iCat   = idx("category");
+    const iName   = idx("name");
+    const iPrice  = idx("price");
+    const iAct    = idx("active");
+    const iSort   = idx("sort");
+    const iCat    = idx("category");
+    const iNote   = idx("note");
+    const iBadge  = idx("badge");
+    const iImage  = idx("image");
 
     const items = rows.map(r => {
       const cells = r.c.map(x => x ? (x.v ?? "") : "");
@@ -317,100 +512,55 @@ async function loadMenuFromSheet(){
         price: Number(cells[iPrice] || 0),
         active: isActive(cells[iAct]),
         sort: Number(cells[iSort] || 9999),
-        category: safeText(cells[iCat]) || "メニュー"
+        category: safeText(cells[iCat]) || "メニュー",
+        note: safeText(cells[iNote]),
+        badge: safeText(cells[iBadge]),
+        image: safeText(cells[iImage])
       };
-    }).filter(x => x.name && x.price);
+    });
 
     items.sort((a,b) => a.sort - b.sort);
 
-    const order = [];
+    const headerItems = items.filter(it => isHeaderCategory(it.category));
+    renderHeaderImages(headerItems);
+
+    const visibleMenuItems = items.filter(it => {
+      if (isHeaderCategory(it.category)) return false;
+      if (!it.active) return false;
+      if (!it.name) return false;
+      if (!it.price) return false;
+      return true;
+    });
+
+    const categoryOrder = [];
     const byCat = new Map();
 
-    for (const it of items){
+    for (const it of visibleMenuItems){
       if (!byCat.has(it.category)){
         byCat.set(it.category, []);
-        order.push(it.category);
+        categoryOrder.push(it.category);
       }
       byCat.get(it.category).push(it);
     }
 
     menuArea.innerHTML = "";
 
-    for (const cat of order){
+    for (const cat of categoryOrder){
       const list = byCat.get(cat);
-
-      const visibleItems = list.filter(it => {
-        if (!it.active && isLimitedCategory(it.category)) return false;
-        return true;
-      });
-
-      if (!visibleItems.length) continue;
+      if (!list || !list.length) continue;
 
       const catTag = document.createElement("div");
       catTag.className = "pg-cat-tag";
-      catTag.textContent = `${cat}`;
+      catTag.textContent = cat;
       menuArea.appendChild(catTag);
 
-      for (const it of visibleItems){
-        const row = document.createElement("div");
-        row.className = "pg-row" + (!it.active ? " is-soldout" : "");
-
-        const nameBox = document.createElement("div");
-        nameBox.className = "pg-name-box";
-        nameBox.innerHTML = `${it.name}<span class="pg-price-tag">${it.price}円</span>`;
-
-        row.appendChild(nameBox);
-
-        if (it.active){
-          const qtyWrap = document.createElement("div");
-          qtyWrap.className = "pg-qty-wrap";
-
-          const minus = document.createElement("button");
-          minus.type = "button";
-          minus.className = "pg-qty-btn";
-          minus.textContent = "−";
-
-          const num = document.createElement("div");
-          num.className = "pg-qty-num";
-          num.textContent = "0";
-          num.dataset.name = it.name;
-          num.dataset.price = String(it.price);
-          num.dataset.qty = "0";
-
-          const plus = document.createElement("button");
-          plus.type = "button";
-          plus.className = "pg-qty-btn";
-          plus.textContent = "＋";
-
-          minus.addEventListener("click", () => {
-            let q = Number(num.dataset.qty || 0);
-            if (q > 0) q--;
-            num.dataset.qty = String(q);
-            num.textContent = String(q);
-            updateTotalAndButton();
-          });
-
-          plus.addEventListener("click", () => {
-            let q = Number(num.dataset.qty || 0);
-            if (q < 20) q++;
-            num.dataset.qty = String(q);
-            num.textContent = String(q);
-            updateTotalAndButton();
-          });
-
-          qtyWrap.appendChild(minus);
-          qtyWrap.appendChild(num);
-          qtyWrap.appendChild(plus);
-          row.appendChild(qtyWrap);
-        } else {
-          const sold = document.createElement("div");
-          sold.className = "pg-soldout";
-          sold.textContent = "売り切れ";
-          row.appendChild(sold);
-        }
-
-        menuArea.appendChild(row);
+      for (const item of list){
+        menuArea.appendChild(makeMenuRow(item));
       }
+    }
+
+    if (!visibleMenuItems.length){
+      menuArea.innerHTML = `<div class="pg-loading">現在表示できるメニューがありません。</div>`;
     }
 
     updateTotalAndButton();
@@ -421,24 +571,28 @@ async function loadMenuFromSheet(){
 
 function collectOrderLines(){
   const lines = [];
-  const qtyNums = document.querySelectorAll(".pg-qty-num");
-  qtyNums.forEach(el => {
-    const q = Number(el.dataset.qty || 0);
+  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+
+  qtyInputs.forEach(el => {
+    const q = Number(el.value || 0);
     if (q > 0){
       lines.push(`${el.dataset.name} × ${q}`);
     }
   });
+
   return lines;
 }
 
 function getTotal(){
   let total = 0;
-  const qtyNums = document.querySelectorAll(".pg-qty-num");
-  qtyNums.forEach(el => {
-    const q = Number(el.dataset.qty || 0);
+  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+
+  qtyInputs.forEach(el => {
+    const q = Number(el.value || 0);
     const p = Number(el.dataset.price || 0);
     total += q * p;
   });
+
   return total;
 }
 
@@ -453,7 +607,7 @@ function updateTotalAndButton(){
   const btn = document.getElementById("sendLineBtn");
   if (name && time && hasMenu){
     btn.classList.remove("disabled");
-    btn.textContent = "LINEで注文を送る";
+    btn.textContent = "LINEで予約内容を送る";
   }else{
     btn.classList.add("disabled");
     btn.textContent = "お名前・時間・メニューを入力してね";
