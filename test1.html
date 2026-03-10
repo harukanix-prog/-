@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>🐧 ご予約注文フォーム</title>
   <style>
+    /* はるちゃんお気に入りのデザイン（そのまま維持！） */
     :root{
       --blue:#3498db;
       --line:#06C755;
@@ -329,18 +330,10 @@
 
 <script>
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
-const DEFAULT_SHEET_NAME = "menu";
+const DEFAULT_SHEET_NAME = "tanakamenu";
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 
-const TIMES = [
-  "11:00","11:15","11:30","11:45",
-  "12:00","12:15","12:30","12:45",
-  "13:00","13:15","13:30","13:45",
-  "14:00","14:15","14:30","14:45",
-  "15:00","15:15","15:30"
-];
-
-let fixedPlaceText = "";
+let infoDataObj = { date: "", place: "", hours: "" };
 
 function safeText(v){
   return (v ?? "").toString().trim();
@@ -367,42 +360,48 @@ function isActive(v){
   return v === true || s === "TRUE" || s === "true" || s === "1" || s === "✔";
 }
 
-function isHeaderCategory(cat){
-  return safeText(cat).toLowerCase() === "header";
-}
+// ★スプシA4の「11:00-16:00」形式から時間を15分刻みで生成する機能
+function buildTimeOptionsFromHours(hourRange) {
+  const select = document.getElementById("custTime");
+  select.innerHTML = '<option value="">時間を選択してください</option>';
 
-function isPopularBadge(badge){
-  return safeText(badge) === "🔥人気";
-}
+  if (!hourRange) return;
 
-function isInfoCategory(cat){
-  const c = safeText(cat).toLowerCase();
-  return c === "info_date" || c === "info_place" || c === "info_hours";
-}
+  // 11:00-16:00, 11:00〜16:00 などに対応
+  const times = hourRange.split(/[-〜]/);
+  if (times.length !== 2) return;
 
-function buildTimeOptions(){
-  const sel = document.getElementById("custTime");
-  sel.innerHTML = '<option value="">時間を選択してください</option>';
+  let current = parseTimeString(times[0]);
+  const end = parseTimeString(times[1]);
 
-  for (const t of TIMES){
-    const o = document.createElement("option");
-    o.value = t;
-    o.textContent = t;
-    sel.appendChild(o);
+  while (current <= end) {
+    const timeStr = formatTimeString(current);
+    const opt = document.createElement("option");
+    opt.value = timeStr;
+    opt.textContent = timeStr;
+    select.appendChild(opt);
+    current.setMinutes(current.getMinutes() + 15);
   }
+}
+
+function parseTimeString(s) {
+  const [h, m] = s.trim().split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+function formatTimeString(d) {
+  return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
 }
 
 function renderHeaderImages(headerItems){
   const imageArea = document.getElementById("menuImageArea");
   imageArea.innerHTML = "";
-
   const validImages = headerItems.filter(item => safeText(item.image));
-
   if (!validImages.length) return;
-
   const wrap = document.createElement("div");
   wrap.className = "pg-menu-image-wrap";
-
   for (const item of validImages){
     const img = document.createElement("img");
     img.className = "pg-menu-image";
@@ -411,7 +410,6 @@ function renderHeaderImages(headerItems){
     img.loading = "lazy";
     wrap.appendChild(img);
   }
-
   imageArea.appendChild(wrap);
 }
 
@@ -420,24 +418,24 @@ function renderInfo(items){
   const infoPlace = items.find(it => safeText(it.category).toLowerCase() === "info_place");
   const infoHours = items.find(it => safeText(it.category).toLowerCase() === "info_hours");
 
-  const dateText = safeText(infoDate?.name) || "未設定";
-  const placeText = safeText(infoPlace?.name) || "未設定";
-  const hoursText = safeText(infoHours?.name) || "未設定";
+  infoDataObj.date = safeText(infoDate?.name) || "未設定";
+  infoDataObj.place = safeText(infoPlace?.name) || "未設定";
+  infoDataObj.hours = safeText(infoHours?.name) || "未設定";
 
-  document.getElementById("infoDate").textContent = dateText;
-  document.getElementById("infoPlace").textContent = placeText;
-  document.getElementById("infoHours").textContent = hoursText;
+  document.getElementById("infoDate").textContent = infoDataObj.date;
+  document.getElementById("infoPlace").textContent = infoDataObj.place;
+  document.getElementById("infoHours").textContent = infoDataObj.hours;
 
-  fixedPlaceText = `${dateText} ${placeText}`;
+  document.title = `🐧 ${infoDataObj.place} ご予約注文フォーム`;
+  document.getElementById("pageTitle").textContent = `🐧 ${infoDataObj.place} ご予約注文フォーム`;
 
-  document.title = `🐧 ${placeText} ご予約注文フォーム`;
-  document.getElementById("pageTitle").textContent = `🐧 ${placeText} ご予約注文フォーム`;
+  // 営業時間を元にセレクトボックスを作成
+  buildTimeOptionsFromHours(infoDataObj.hours);
 }
 
 function makeQtyInput(item){
   const wrap = document.createElement("div");
   wrap.className = "pg-qty-wrap";
-
   const input = document.createElement("input");
   input.type = "number";
   input.inputMode = "numeric";
@@ -448,28 +446,18 @@ function makeQtyInput(item){
   input.className = "pg-qty-input";
   input.dataset.name = item.name;
   input.dataset.price = String(item.price);
-
   const updateState = () => {
     let val = parseInt(input.value, 10);
-
     if (isNaN(val) || val < 0) val = 0;
     if (val > 20) val = 20;
-
     input.value = String(val);
-
-    if (val > 0){
-      input.classList.add("has-value");
-    }else{
-      input.classList.remove("has-value");
-    }
-
+    if (val > 0) input.classList.add("has-value");
+    else input.classList.remove("has-value");
     updateTotalAndButton();
   };
-
   input.addEventListener("input", updateState);
   input.addEventListener("change", updateState);
   input.addEventListener("blur", updateState);
-
   wrap.appendChild(input);
   return wrap;
 }
@@ -477,34 +465,27 @@ function makeQtyInput(item){
 function makeMenuRow(item){
   const row = document.createElement("div");
   row.className = "pg-row";
-
   const left = document.createElement("div");
   left.className = "pg-item-left";
-
   const nameBox = document.createElement("div");
   nameBox.className = "pg-name-box";
-
   if (safeText(item.badge)){
     const badge = document.createElement("div");
     badge.className = "pg-badge";
     badge.textContent = item.badge;
     nameBox.appendChild(badge);
   }
-
   const name = document.createElement("div");
   name.className = "pg-item-name";
   name.textContent = item.name;
   nameBox.appendChild(name);
-
   const price = document.createElement("span");
   price.className = "pg-price-tag";
   price.textContent = `${item.price}円`;
   nameBox.appendChild(price);
-
   left.appendChild(nameBox);
   row.appendChild(left);
   row.appendChild(makeQtyInput(item));
-
   return row;
 }
 
@@ -515,62 +496,17 @@ function makeSectionTag(text, className){
   return tag;
 }
 
-function renderPopularSection(menuArea, items){
-  if (!items.length) return;
-
-  menuArea.appendChild(makeSectionTag("🔥人気メニュー", "pg-popular-tag"));
-
-  for (const item of items){
-    menuArea.appendChild(makeMenuRow(item));
-  }
-}
-
-function renderCategorySections(menuArea, items){
-  const categoryOrder = [];
-  const byCat = new Map();
-
-  for (const it of items){
-    if (!byCat.has(it.category)){
-      byCat.set(it.category, []);
-      categoryOrder.push(it.category);
-    }
-    byCat.get(it.category).push(it);
-  }
-
-  for (const cat of categoryOrder){
-    const list = byCat.get(cat);
-    if (!list || !list.length) continue;
-
-    menuArea.appendChild(makeSectionTag(cat, "pg-cat-tag"));
-
-    for (const item of list){
-      menuArea.appendChild(makeMenuRow(item));
-    }
-  }
-}
-
 async function loadMenuFromSheet(){
   const menuArea = document.getElementById("menuArea");
   const sheetName = getSheetNameFromUrl();
-
   try{
     const res = await fetch(gvizUrl(sheetName), { cache: "no-store" });
     const txt = await res.text();
     const data = parseGviz(txt);
-
     const cols = data.table.cols.map(c => (c.label || "").trim());
     const rows = data.table.rows;
-
     const idx = (name) => cols.findIndex(c => c === name);
-
-    const iName   = idx("name");
-    const iPrice  = idx("price");
-    const iAct    = idx("active");
-    const iSort   = idx("sort");
-    const iCat    = idx("category");
-    const iNote   = idx("note");
-    const iBadge  = idx("badge");
-    const iImage  = idx("image");
+    const iName = idx("name"), iPrice = idx("price"), iAct = idx("active"), iSort = idx("sort"), iCat = idx("category"), iBadge = idx("badge"), iImage = idx("image");
 
     const items = rows.map(r => {
       const cells = r.c.map(x => x ? (x.v ?? "") : "");
@@ -580,86 +516,56 @@ async function loadMenuFromSheet(){
         active: isActive(cells[iAct]),
         sort: Number(cells[iSort] || 9999),
         category: safeText(cells[iCat]) || "メニュー",
-        note: safeText(cells[iNote]),
         badge: safeText(cells[iBadge]),
         image: safeText(cells[iImage])
       };
     });
 
     items.sort((a,b) => a.sort - b.sort);
-
     renderInfo(items);
 
-    const headerItems = items.filter(it => isHeaderCategory(it.category));
+    const headerItems = items.filter(it => safeText(it.category).toLowerCase() === "header");
     renderHeaderImages(headerItems);
 
     const visibleMenuItems = items.filter(it => {
-      if (isHeaderCategory(it.category)) return false;
-      if (isInfoCategory(it.category)) return false;
-      if (!it.active) return false;
-      if (!it.name) return false;
-      if (!it.price) return false;
+      const c = safeText(it.category).toLowerCase();
+      if (c === "header" || c.startsWith("info_") || !it.active || !it.name || !it.price) return false;
       return true;
     });
 
-    const popularItems = visibleMenuItems.filter(it => isPopularBadge(it.badge));
-    const normalItems = visibleMenuItems.filter(it => !isPopularBadge(it.badge));
-
     menuArea.innerHTML = "";
-
     if (!visibleMenuItems.length){
       menuArea.innerHTML = `<div class="pg-loading">現在表示できるメニューがありません。</div>`;
-      updateTotalAndButton();
-      return;
+    } else {
+      // 人気セクション
+      const populars = visibleMenuItems.filter(it => safeText(it.badge) === "🔥人気");
+      if(populars.length){
+        menuArea.appendChild(makeSectionTag("🔥人気メニュー", "pg-popular-tag"));
+        populars.forEach(it => menuArea.appendChild(makeMenuRow(it)));
+      }
+      // カテゴリ別
+      const cats = [...new Set(visibleMenuItems.filter(it => safeText(it.badge) !== "🔥人気").map(it => it.category))];
+      cats.forEach(c => {
+        menuArea.appendChild(makeSectionTag(c, "pg-cat-tag"));
+        visibleMenuItems.filter(it => it.category === c && safeText(it.badge) !== "🔥人気").forEach(it => menuArea.appendChild(makeMenuRow(it)));
+      });
     }
-
-    renderPopularSection(menuArea, popularItems);
-    renderCategorySections(menuArea, normalItems);
-
     updateTotalAndButton();
   }catch(e){
-    document.getElementById("infoDate").textContent = "読み込み失敗";
-    document.getElementById("infoPlace").textContent = getSheetNameFromUrl();
-    document.getElementById("infoHours").textContent = "読み込み失敗";
-    menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>スプレッドシートの公開設定とシート名をご確認ください。</div>`;
+    menuArea.innerHTML = `<div class="pg-loading">読み込みに失敗しました。</div>`;
   }
-}
-
-function collectOrderLines(){
-  const lines = [];
-  const qtyInputs = document.querySelectorAll(".pg-qty-input");
-
-  qtyInputs.forEach(el => {
-    const q = Number(el.value || 0);
-    if (q > 0){
-      lines.push(`${el.dataset.name} × ${q}`);
-    }
-  });
-
-  return lines;
-}
-
-function getTotal(){
-  let total = 0;
-  const qtyInputs = document.querySelectorAll(".pg-qty-input");
-
-  qtyInputs.forEach(el => {
-    const q = Number(el.value || 0);
-    const p = Number(el.dataset.price || 0);
-    total += q * p;
-  });
-
-  return total;
 }
 
 function updateTotalAndButton(){
   const name = safeText(document.getElementById("custName").value);
   const time = safeText(document.getElementById("custTime").value);
-  const hasMenu = collectOrderLines().length > 0;
-  const total = getTotal();
-
-  document.getElementById("total-val").textContent = String(total);
-
+  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+  let hasMenu = false, total = 0, count = 0;
+  qtyInputs.forEach(el => {
+    const q = Number(el.value || 0);
+    if (q > 0) { hasMenu = true; total += q * Number(el.dataset.price); count += q; }
+  });
+  document.getElementById("total-val").textContent = total.toLocaleString();
   const btn = document.getElementById("sendLineBtn");
   if (name && time && hasMenu){
     btn.classList.remove("disabled");
@@ -670,34 +576,27 @@ function updateTotalAndButton(){
   }
 }
 
+// ★LINEメッセージの形式をはるちゃん指定に修正
 function buildLineMessage(){
   const name = safeText(document.getElementById("custName").value);
   const time = safeText(document.getElementById("custTime").value);
-  const lines = collectOrderLines();
-  const total = getTotal();
+  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+  let items = [], total = 0, count = 0;
+  qtyInputs.forEach(el => {
+    const q = Number(el.value || 0);
+    if (q > 0) { items.push(`${el.dataset.name} ×${q}`); total += q * Number(el.dataset.price); count += q; }
+  });
 
-  return `【予約注文】
-■お名前：${name}
-■場所：${fixedPlaceText}
-■時間：${time}
-
-■内容：
-・${lines.join("\n・")}
-
-合計：${total}円`;
+  return `【${time}】\n\n${items.join("\n")}\n\nーーーーーーーーーー\n${name}様\n合計 : ${count}枚 / ${total}円\n${infoDataObj.date} ${infoDataObj.place}`;
 }
 
 function onSendLine(){
   const btn = document.getElementById("sendLineBtn");
   if (btn.classList.contains("disabled")) return;
-
-  const msg = buildLineMessage();
-  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
-  location.href = url;
+  location.href = LINE_SEND_URL_BASE + encodeURIComponent(buildLineMessage());
 }
 
 function init(){
-  buildTimeOptions();
   document.getElementById("custName").addEventListener("input", updateTotalAndButton);
   document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
   document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
@@ -707,3 +606,4 @@ init();
 </script>
 </body>
 </html>
+
