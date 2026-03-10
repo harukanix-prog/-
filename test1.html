@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>🐧 ご予約注文フォーム</title>
   <style>
-    /* はるちゃんお気に入りのデザイン設定 */
     :root{
       --blue:#3498db; --line:#06C755; --danger:#e74c3c; --border:#eee;
       --muted:#777; --beige:#f6efe7; --gold:#f0c36d; --badge-bg:#fff3cd;
@@ -14,20 +13,12 @@
     body{ margin:0; background:#f6f6f6; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif; color:#333; }
     #pg-form{ max-width:720px; margin:0 auto; padding:12px 12px 180px; box-sizing:border-box; }
     h1{ text-align:center; color:#333; margin:10px 0 16px; font-size:20px; font-weight:900; }
-    
-    /* 出店情報エリア */
     .pg-fixed-info{ background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; border:1px solid #eee; line-height:1.7; font-size:15px; font-weight:700; }
     .pg-info-box{ background:#fff8e8; border:2px solid var(--gold); padding:14px; border-radius:16px; margin:12px 0 18px 0; font-size:14px; line-height:1.9; }
-    
-    /* ★メニュー全体画像の見た目 */
     .pg-menu-image{ width:100%; display:block; border-radius:12px; margin-bottom:20px; background:#fff; border:1px solid #eee; }
-    
-    /* 入力カード */
     .pg-card{ background:#fff; border:1px solid var(--border); padding:14px; border-radius:16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
     .pg-title{ font-weight:900; font-size:15px; margin-bottom:8px; display:block; }
     .pg-input-field{ width:100%; padding:14px 12px; border:1px solid #ccc; border-radius:10px; font-size:18px; box-sizing:border-box; background:#fff; }
-    
-    /* 商品行 */
     .pg-section-tag{ padding:12px 14px; border-radius:14px; margin:20px 0 8px; font-size:15px; font-weight:900; border:1px solid; }
     .pg-cat-tag{ background:var(--beige); color:#6b4f3a; border-color:#eadfd3; }
     .pg-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 8px; border-bottom:1px solid #eee; background:#fff; gap:10px; }
@@ -37,8 +28,6 @@
     .pg-qty-wrap{ width:70px; flex-shrink:0; }
     .pg-qty-input{ width:100%; height:46px; border:1px solid #ccc; border-radius:10px; font-size:20px; font-weight:900; text-align:center; box-sizing:border-box; background:#f3f3f3; color:#999; }
     .pg-qty-input.has-value{ background:#fff; color:#333; border-color:#3498db; }
-    
-    /* フッター */
     .pg-footer-bar{ position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:14px 12px; border-top:3px solid var(--blue); text-align:center; z-index:9999; box-sizing:border-box; }
     .pg-total-txt{ font-size:18px; font-weight:900; margin-bottom:10px; }
     .pg-btn-line{ display:block; background:var(--line); color:#fff; text-decoration:none; padding:16px; border-radius:999px; font-weight:900; font-size:18px; box-shadow:0 4px 0 #05a346; }
@@ -70,12 +59,11 @@
     <div class="pg-card">
       <span class="pg-title">■ お受け取り希望時間</span>
       <select id="custTime" class="pg-input-field">
-        <option value="">読み込み中…</option>
+        <option value="">時間を選択してください</option>
       </select>
     </div>
 
     <div id="menuImageArea"></div>
-
     <div id="menuArea">
       <div id="menuLoading" class="pg-loading">メニューを読み込み中…🐧</div>
     </div>
@@ -87,7 +75,6 @@
   </div>
 
 <script>
-// はるちゃんのスプシID
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 
@@ -95,50 +82,63 @@ let infoDataObj = { date: "", place: "", hours: "" };
 
 function safeText(v){ return (v ?? "").toString().trim(); }
 
-// 15分刻みの時間を生成
+// ★営業時間を15分刻みで作る
 function buildTimeOptions(hourRange) {
   const select = document.getElementById("custTime");
   select.innerHTML = '<option value="">時間を選択してください</option>';
+  
   if (!hourRange || !hourRange.includes(":")) return;
-  const times = hourRange.split(/[-〜]/);
-  if (times.length !== 2) return;
+
+  // 「13:00-18:00」や「13:00〜18:00」を分割
+  const parts = hourRange.split(/[-〜]/);
+  if (parts.length !== 2) return;
+
   try {
-    let curr = parseTime(times[0]); let end = parseTime(times[1]);
-    while (curr <= end) {
+    let startParts = parts[0].trim().split(':');
+    let endParts = parts[1].trim().split(':');
+    
+    let startMin = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+    let endMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+    for (let m = startMin; m <= endMin; m += 15) {
+      let hh = Math.floor(m / 60).toString().padStart(2, '0');
+      let mm = (m % 60).toString().padStart(2, '0');
+      let timeStr = `${hh}:${mm}`;
       let opt = document.createElement("option");
-      let s = curr.getHours().toString().padStart(2,'0')+":"+curr.getMinutes().toString().padStart(2,'0');
-      opt.value = s; opt.textContent = s; select.appendChild(opt);
-      curr.setMinutes(curr.getMinutes() + 15);
+      opt.value = timeStr; opt.textContent = timeStr;
+      select.appendChild(opt);
     }
-  } catch(e){}
+  } catch(e) { console.error("Time logic error", e); }
 }
-function parseTime(s){ let [h,m]=s.trim().split(':').map(Number); let d=new Date(); d.setHours(h,m,0,0); return d; }
 
 async function loadMenu(){
   const params = new URLSearchParams(window.location.search);
   const sheetName = params.get("sheet") || "tanakamenu";
+  // はるちゃんのスプシを読み込み
   const url = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${sheetName}`;
 
   try {
     const res = await fetch(url);
     const data = await res.json();
     
-    // 1. info系を取得
-    const dRow = data.find(it => it.category === "info_date");
-    const pRow = data.find(it => it.category === "info_place");
-    const hRow = data.find(it => it.category === "info_hours");
-    infoDataObj.date = safeText(dRow?.name);
-    infoDataObj.place = safeText(pRow?.name);
-    infoDataObj.hours = safeText(hRow?.name);
+    // ★ ここを強化！ A列(category)を見てB列(name)を抜き出す
+    data.forEach(row => {
+      const cat = safeText(row.category);
+      if(cat === "info_date") infoDataObj.date = safeText(row.name);
+      if(cat === "info_place") infoDataObj.place = safeText(row.name);
+      if(cat === "info_hours") infoDataObj.hours = safeText(row.name);
+    });
+
+    document.getElementById("infoDate").innerText = infoDataObj.date || "未設定";
+    document.getElementById("infoPlace").innerText = infoDataObj.place || "未設定";
+    document.getElementById("infoHours").innerText = infoDataObj.hours || "未設定";
     
-    document.getElementById("infoDate").innerText = infoDataObj.date;
-    document.getElementById("infoPlace").innerText = infoDataObj.place;
-    document.getElementById("infoHours").innerText = infoDataObj.hours;
+    // 時間リストを作成（ここでinfo_hoursが使われるよ）
     buildTimeOptions(infoDataObj.hours);
 
-    // 2. header画像を表示
+    // 画像（header）を表示
     const imgArea = document.getElementById("menuImageArea");
-    data.filter(it => it.category === "header").forEach(it => {
+    data.filter(it => safeText(it.category) === "header").forEach(it => {
       const src = it.image || it.drive_link;
       if(src){
         const img = document.createElement("img");
@@ -147,10 +147,10 @@ async function loadMenu(){
       }
     });
 
-    // 3. 商品メニューを表示（activeかつheader以外）
+    // 商品を表示
     const menuArea = document.getElementById("menuArea");
     menuArea.innerHTML = "";
-    const items = data.filter(it => it.active === "TRUE" && it.price && !it.category.startsWith("info_") && it.category !== "header");
+    const items = data.filter(it => it.active === "TRUE" && it.price && !safeText(it.category).startsWith("info_") && safeText(it.category) !== "header");
     
     const cats = [...new Set(items.map(it => it.category))];
     cats.forEach(c => {
