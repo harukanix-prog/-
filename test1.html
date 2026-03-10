@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ぺんぎんKITCHEN 予約システム</title>
+    <style>
+        /* デザインははるちゃんのこだわりを維持してね！ */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding-bottom: 120px; background-color: #f9f9f9; color: #333; }
+        .header-img { width: 100%; display: block; }
+        .container { padding: 15px; }
+        .category-title { background: #444; color: #fff; padding: 8px 15px; font-weight: bold; margin-top: 25px; border-radius: 5px; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #ddd; background: #fff; }
+        .badge { font-size: 0.75em; padding: 3px 8px; border-radius: 12px; background: #fff3e0; color: #e65100; font-weight: bold; margin-bottom: 5px; display: inline-block; }
+        .price { color: #e91e63; font-weight: bold; }
+        .counter { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 5px; overflow: hidden; }
+        .counter button { width: 35px; height: 35px; border: none; background: #eee; font-size: 1.2em; cursor: pointer; }
+        .count-display { width: 40px; text-align: center; font-weight: bold; line-height: 35px; }
+        .footer { position: fixed; bottom: 0; width: 100%; background: #fff; border-top: 2px solid #eee; padding: 15px; box-sizing: border-box; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .btn-send { background: #ccc; color: #fff; border: none; padding: 12px; border-radius: 25px; width: 100%; font-size: 1.1em; font-weight: bold; transition: 0.3s; }
+        .btn-send.active { background: #06C755; cursor: pointer; } /* LINEカラー */
+        select, input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
+        #loading { text-align: center; padding: 100px 20px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+<div id="loading">メニューを読み込み中...🐧</div>
+
+<div id="app" style="display:none;">
+    <div id="header-images"></div>
+
+    <div class="container">
+        <label>📅 お受け取り希望時間</label>
+        <select id="time-select" onchange="updateFooter()">
+            <option value="">選択してください</option>
+        </select>
+
+        <div id="menu-list"></div>
+
+        <label style="margin-top:25px;">👤 お名前（ニックネーム可）</label>
+        <input type="text" id="user-name" placeholder="例：ぺんぎんハル子" oninput="updateFooter()">
+    </div>
+
+    <div class="footer">
+        <div style="font-size: 1.1em; margin-bottom: 10px; font-weight: bold;">
+            合計：<span id="total-price">0</span>円
+        </div>
+        <button id="send-button" class="btn-send" onclick="sendLine()">お名前・時間・メニューを入力してね</button>
+    </div>
+</div>
+
+<script>
+    // 1. URLからシート名を取得（?sheet=xxxx）
+    const params = new URLSearchParams(window.location.search);
+    const sheetName = params.get('sheet') || 'tanakamenu'; 
+    
+    // はるちゃんのスプレッドシートID
+    const SPREADSHEET_ID = '1TqC8W2_D8_E8Z_L8I1X0p0Gv_3L9z5G5V7y7V8g8p8k';
+    const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${sheetName}`;
+
+    let menuData = [];
+    let info = { date: '', place: '', hours: '' };
+
+    async function init() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            
+            data.forEach(row => {
+                // info系の情報を取得
+                if(row.category === 'info_date') info.date = row.name;
+                if(row.category === 'info_place') info.place = row.name;
+                if(row.category === 'info_hours') info.hours = row.name;
+                
+                // メニュー項目（activeがTRUEのものだけ）
+                if(row.active === 'TRUE' && row.price) {
+                    menuData.push({
+                        name: row.name,
+                        price: parseInt(row.price),
+                        category: row.category,
+                        badge: row.badge,
+                        count: 0
+                    });
+                }
+                // ヘッダー画像
+                if(row.category === 'header' && row.drive_link) {
+                    const img = document.createElement('img');
+                    img.src = row.drive_link;
+                    img.className = 'header-img';
+                    document.getElementById('header-images').appendChild(img);
+                }
+            });
+
+            // 時間の選択肢を自動生成
+            generateTimeOptions(info.hours);
+            // メニューを表示
+            renderMenu();
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        } catch (e) {
+            document.getElementById('loading').innerText = "シート「" + sheetName + "」が見つからないか、読み込みに失敗しました。";
+        }
+    }
+
+    // 営業時間から15分刻みの選択肢を作る
+    function generateTimeOptions(hourRange) {
+        const select = document.getElementById('time-select');
+        if(!hourRange) return;
+
+        const times = hourRange.split(/[-〜]/);
+        if(times.length !== 2) return;
+
+        let current = parseTime(times[0]);
+        const end = parseTime(times[1]);
+
+        while(current <= end) {
+            const option = document.createElement('option');
+            const timeStr = formatTime(current);
+            option.value = timeStr;
+            option.innerText = timeStr;
+            select.appendChild(option);
+            current.setMinutes(current.getMinutes() + 15);
+        }
+    }
+
+    function parseTime(s) {
+        const [h, m] = s.trim().split(':').map(Number);
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+    }
+
+    function formatTime(d) {
+        return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+    }
+
+    function renderMenu() {
+        const list = document.getElementById('menu-list');
+        let lastCat = "";
+        
+        menuData.forEach((item, index) => {
+            if(item.category !== lastCat) {
+                const catDiv = document.createElement('div');
+                catDiv.className = 'category-title';
+                catDiv.innerText = item.category;
+                list.appendChild(catDiv);
+                lastCat = item.category;
+            }
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            itemDiv.innerHTML = `
+                <div>
+                    ${item.badge ? `<span class="badge">${item.badge}</span><br>` : ''}
+                    <strong>${item.name}</strong><br>
+                    <span class="price">${item.price}円</span>
+                </div>
+                <div class="counter">
+                    <button onclick="updateCount(${index}, -1)">-</button>
+                    <div class="count-display" id="count-${index}">0</div>
+                    <button onclick="updateCount(${index}, 1)">+</button>
+                </div>
+            `;
+            list.appendChild(itemDiv);
+        });
+    }
+
+    window.updateCount = (index, diff) => {
+        menuData[index].count = Math.max(0, menuData[index].count + diff);
+        document.getElementById(`count-${index}`).innerText = menuData[index].count;
+        updateFooter();
+    };
+
+    function updateFooter() {
+        const total = menuData.reduce((sum, i) => sum + (i.price * i.count), 0);
+        const name = document.getElementById('user-name').value;
+        const time = document.getElementById('time-select').value;
+        
+        document.getElementById('total-price').innerText = total.toLocaleString();
+        const btn = document.getElementById('send-button');
+
+        if(total > 0 && name.trim() !== "" && time !== "") {
+            btn.classList.add('active');
+            btn.innerText = "LINEで予約を送信する";
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = "お名前・時間・メニューを入力してね";
+        }
+    }
+
+    function sendLine() {
+        const btn = document.getElementById('send-button');
+        if(!btn.classList.contains('active')) return;
+
+        const time = document.getElementById('time-select').value;
+        const name = document.getElementById('user-name').value;
+        const total = menuData.reduce((sum, i) => sum + (i.price * i.count), 0);
+        const totalCount = menuData.reduce((sum, i) => sum + i.count, 0);
+        
+        const selectedItems = menuData
+            .filter(i => i.count > 0)
+            .map(i => `${i.name} ×${i.count}`)
+            .join('\n');
+
+        // ★はるちゃんの指定形式
+        const message = `【${time}】\n\n${selectedItems}\n\nーーーーーーーーー\n${name}様\n合計：${totalCount}枚 / ${total}円\n${info.date} ${info.place}`;
+
+        const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
+        window.location.href = lineUrl;
+    }
+
+    init();
+</script>
+
+</body>
+</html>
