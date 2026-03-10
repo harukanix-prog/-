@@ -55,6 +55,17 @@
       font-size:14px;
       line-height:1.8;
     }
+    .pg-menu-image-wrap{
+      margin-bottom:20px;
+    }
+    .pg-menu-image{
+      width:100%;
+      display:block;
+      border-radius:12px;
+      margin-bottom:20px;
+      background:#fff;
+      border:1px solid #eee;
+    }
     .pg-card{
       background:#fff;
       border:1px solid var(--border);
@@ -215,6 +226,8 @@
       ※お支払いは当日、キッチンカーにてお願いいたします
     </div>
 
+    <div id="menuImageArea"></div>
+
     <div class="pg-card">
       <span class="pg-title">■ お名前</span>
       <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎" />
@@ -260,7 +273,9 @@ const TIMES = [
   "15:00","15:15","15:30"
 ];
 
-function safeText(v){ return (v ?? "").toString().trim(); }
+function safeText(v){
+  return (v ?? "").toString().trim();
+}
 
 function parseGviz(text){
   const start = text.indexOf("{");
@@ -282,18 +297,46 @@ function isLimitedCategory(cat){
   return c.includes("限定") || c.includes("オリジナル");
 }
 
+function isHeaderCategory(cat){
+  return safeText(cat).toLowerCase() === "header";
+}
+
 function buildTimeOptions(){
   const sel = document.getElementById("custTime");
   for (const t of TIMES){
     const o = document.createElement("option");
     o.value = t;
-    o.textContent = `${t}`;
+    o.textContent = t;
     sel.appendChild(o);
   }
 }
 
+function renderHeaderImages(headerItems){
+  const imageArea = document.getElementById("menuImageArea");
+  imageArea.innerHTML = "";
+
+  const validImages = headerItems.filter(item => item.image);
+
+  if (!validImages.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "pg-menu-image-wrap";
+
+  for (const item of validImages){
+    const img = document.createElement("img");
+    img.className = "pg-menu-image";
+    img.src = item.image;
+    img.alt = item.name || "メニュー画像";
+    img.loading = "lazy";
+    wrap.appendChild(img);
+  }
+
+  imageArea.appendChild(wrap);
+}
+
 async function loadMenuFromSheet(){
   const menuArea = document.getElementById("menuArea");
+
   try{
     const res = await fetch(gvizUrl(), { cache: "no-store" });
     const txt = await res.text();
@@ -304,11 +347,12 @@ async function loadMenuFromSheet(){
 
     const idx = (name) => cols.findIndex(c => c === name);
 
-    const iName  = idx("name");
-    const iPrice = idx("price");
-    const iAct   = idx("active");
-    const iSort  = idx("sort");
-    const iCat   = idx("category");
+    const iName   = idx("name");
+    const iPrice  = idx("price");
+    const iAct    = idx("active");
+    const iSort   = idx("sort");
+    const iCat    = idx("category");
+    const iImage  = idx("image");
 
     const items = rows.map(r => {
       const cells = r.c.map(x => x ? (x.v ?? "") : "");
@@ -317,16 +361,22 @@ async function loadMenuFromSheet(){
         price: Number(cells[iPrice] || 0),
         active: isActive(cells[iAct]),
         sort: Number(cells[iSort] || 9999),
-        category: safeText(cells[iCat]) || "メニュー"
+        category: safeText(cells[iCat]) || "メニュー",
+        image: safeText(cells[iImage])
       };
-    }).filter(x => x.name && x.price);
+    }).filter(x => x.name || x.image);
 
     items.sort((a,b) => a.sort - b.sort);
+
+    const headerItems = items.filter(it => isHeaderCategory(it.category));
+    const menuItems = items.filter(it => !isHeaderCategory(it.category) && it.name && it.price);
+
+    renderHeaderImages(headerItems);
 
     const order = [];
     const byCat = new Map();
 
-    for (const it of items){
+    for (const it of menuItems){
       if (!byCat.has(it.category)){
         byCat.set(it.category, []);
         order.push(it.category);
@@ -348,7 +398,7 @@ async function loadMenuFromSheet(){
 
       const catTag = document.createElement("div");
       catTag.className = "pg-cat-tag";
-      catTag.textContent = `${cat}`;
+      catTag.textContent = cat;
       menuArea.appendChild(catTag);
 
       for (const it of visibleItems){
@@ -358,7 +408,6 @@ async function loadMenuFromSheet(){
         const nameBox = document.createElement("div");
         nameBox.className = "pg-name-box";
         nameBox.innerHTML = `${it.name}<span class="pg-price-tag">${it.price}円</span>`;
-
         row.appendChild(nameBox);
 
         if (it.active){
@@ -422,23 +471,27 @@ async function loadMenuFromSheet(){
 function collectOrderLines(){
   const lines = [];
   const qtyNums = document.querySelectorAll(".pg-qty-num");
+
   qtyNums.forEach(el => {
     const q = Number(el.dataset.qty || 0);
     if (q > 0){
       lines.push(`${el.dataset.name} × ${q}`);
     }
   });
+
   return lines;
 }
 
 function getTotal(){
   let total = 0;
   const qtyNums = document.querySelectorAll(".pg-qty-num");
+
   qtyNums.forEach(el => {
     const q = Number(el.dataset.qty || 0);
     const p = Number(el.dataset.price || 0);
     total += q * p;
   });
+
   return total;
 }
 
