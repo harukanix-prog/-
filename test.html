@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🐧 阪和第一泉北病院 ご予約注文フォーム</title>
+  <title>🐧 ご予約注文フォーム</title>
   <style>
     :root{
       --blue:#3498db;
       --line:#06C755;
       --danger:#e74c3c;
-      --bg:#ffffff;
-      --card:#fdfdfd;
       --border:#eee;
       --muted:#777;
       --beige:#f6efe7;
@@ -279,12 +277,12 @@
 
 <body>
   <div id="pg-form">
-    <h1>🐧 阪和第一泉北病院 ご予約注文フォーム</h1>
+    <h1 id="pageTitle">🐧 ご予約注文フォーム</h1>
 
     <div class="pg-fixed-info">
-      <div><strong>ご予約日：</strong>2026/03/11(水)</div>
-      <div><strong>出店場所：</strong>阪和第一泉北病院</div>
-      <div><strong>営業時間：</strong>11:00〜16:00</div>
+      <div><strong>ご予約日：</strong><span id="infoDate">読み込み中…</span></div>
+      <div><strong>出店場所：</strong><span id="infoPlace">読み込み中…</span></div>
+      <div><strong>営業時間：</strong><span id="infoHours">読み込み中…</span></div>
     </div>
 
     <div class="pg-info-box">
@@ -331,8 +329,7 @@
 
 <script>
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
-const SHEET_NAME = "阪和第一泉北病院menu";
-const FIXED_PLACE = "2026/03/11(水) 阪和第一泉北病院";
+const DEFAULT_SHEET_NAME = "menu";
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 
 const TIMES = [
@@ -342,6 +339,8 @@ const TIMES = [
   "14:00","14:15","14:30","14:45",
   "15:00","15:15","15:30"
 ];
+
+let fixedPlaceText = "";
 
 function safeText(v){
   return (v ?? "").toString().trim();
@@ -354,8 +353,13 @@ function parseGviz(text){
   return JSON.parse(json);
 }
 
-function gvizUrl() {
-  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+function getSheetNameFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return safeText(params.get("sheet")) || DEFAULT_SHEET_NAME;
+}
+
+function gvizUrl(sheetName) {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 }
 
 function isActive(v){
@@ -368,11 +372,18 @@ function isHeaderCategory(cat){
 }
 
 function isPopularBadge(badge){
-  return safeText(badge) === "🍓人気";
+  return safeText(badge) === "🔥人気";
+}
+
+function isInfoCategory(cat){
+  const c = safeText(cat).toLowerCase();
+  return c === "info_date" || c === "info_place" || c === "info_hours";
 }
 
 function buildTimeOptions(){
   const sel = document.getElementById("custTime");
+  sel.innerHTML = '<option value="">時間を選択してください</option>';
+
   for (const t of TIMES){
     const o = document.createElement("option");
     o.value = t;
@@ -402,6 +413,25 @@ function renderHeaderImages(headerItems){
   }
 
   imageArea.appendChild(wrap);
+}
+
+function renderInfo(items){
+  const infoDate = items.find(it => safeText(it.category).toLowerCase() === "info_date");
+  const infoPlace = items.find(it => safeText(it.category).toLowerCase() === "info_place");
+  const infoHours = items.find(it => safeText(it.category).toLowerCase() === "info_hours");
+
+  const dateText = safeText(infoDate?.name) || "未設定";
+  const placeText = safeText(infoPlace?.name) || "未設定";
+  const hoursText = safeText(infoHours?.name) || "未設定";
+
+  document.getElementById("infoDate").textContent = dateText;
+  document.getElementById("infoPlace").textContent = placeText;
+  document.getElementById("infoHours").textContent = hoursText;
+
+  fixedPlaceText = `${dateText} ${placeText}`;
+
+  document.title = `🐧 ${placeText} ご予約注文フォーム`;
+  document.getElementById("pageTitle").textContent = `🐧 ${placeText} ご予約注文フォーム`;
 }
 
 function makeQtyInput(item){
@@ -521,9 +551,10 @@ function renderCategorySections(menuArea, items){
 
 async function loadMenuFromSheet(){
   const menuArea = document.getElementById("menuArea");
+  const sheetName = getSheetNameFromUrl();
 
   try{
-    const res = await fetch(gvizUrl(), { cache: "no-store" });
+    const res = await fetch(gvizUrl(sheetName), { cache: "no-store" });
     const txt = await res.text();
     const data = parseGviz(txt);
 
@@ -557,11 +588,14 @@ async function loadMenuFromSheet(){
 
     items.sort((a,b) => a.sort - b.sort);
 
+    renderInfo(items);
+
     const headerItems = items.filter(it => isHeaderCategory(it.category));
     renderHeaderImages(headerItems);
 
     const visibleMenuItems = items.filter(it => {
       if (isHeaderCategory(it.category)) return false;
+      if (isInfoCategory(it.category)) return false;
       if (!it.active) return false;
       if (!it.name) return false;
       if (!it.price) return false;
@@ -584,6 +618,9 @@ async function loadMenuFromSheet(){
 
     updateTotalAndButton();
   }catch(e){
+    document.getElementById("infoDate").textContent = "読み込み失敗";
+    document.getElementById("infoPlace").textContent = getSheetNameFromUrl();
+    document.getElementById("infoHours").textContent = "読み込み失敗";
     menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>スプレッドシートの公開設定とシート名をご確認ください。</div>`;
   }
 }
@@ -641,7 +678,7 @@ function buildLineMessage(){
 
   return `【予約注文】
 ■お名前：${name}
-■場所：${FIXED_PLACE}
+■場所：${fixedPlaceText}
 ■時間：${time}
 
 ■内容：
