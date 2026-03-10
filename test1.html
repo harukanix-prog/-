@@ -32,7 +32,6 @@
     .pg-total-txt{ font-size:18px; font-weight:900; margin-bottom:10px; }
     .pg-btn-line{ display:block; background:var(--line); color:#fff; text-decoration:none; padding:16px; border-radius:999px; font-weight:900; font-size:18px; box-shadow:0 4px 0 #05a346; }
     .pg-btn-line.disabled{ background:#cfcfcf; box-shadow:none; pointer-events:none; }
-    .pg-loading{ color:var(--muted); font-size:14px; padding:50px 0; text-align:center; }
   </style>
 </head>
 <body>
@@ -41,9 +40,9 @@
     <h1 id="pageTitle">🐧 ご予約注文フォーム</h1>
 
     <div class="pg-fixed-info">
-      <div><strong>ご予約日：</strong><span id="infoDate">読み込み中…</span></div>
-      <div><strong>出店場所：</strong><span id="infoPlace">読み込み中…</span></div>
-      <div><strong>営業時間：</strong><span id="infoHours">読み込み中…</span></div>
+      <div><strong>ご予約日：</strong><span id="infoDate"></span></div>
+      <div><strong>出店場所：</strong><span id="infoPlace"></span></div>
+      <div><strong>営業時間：</strong><span id="infoHours"></span></div>
     </div>
 
     <div class="pg-info-box">
@@ -59,14 +58,12 @@
     <div class="pg-card">
       <span class="pg-title">■ お受け取り希望時間</span>
       <select id="custTime" class="pg-input-field">
-        <option value="">時間を選択してください</option>
+        <option value="">読み込み中…</option>
       </select>
     </div>
 
     <div id="menuImageArea"></div>
-    <div id="menuArea">
-      <div id="menuLoading" class="pg-loading">メニューを読み込み中…🐧</div>
-    </div>
+    <div id="menuArea"></div>
   </div>
 
   <div class="pg-footer-bar">
@@ -77,106 +74,79 @@
 <script>
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
-
 let infoDataObj = { date: "", place: "", hours: "" };
 
 function safeText(v){ return (v ?? "").toString().trim(); }
 
-// ★営業時間を15分刻みで作る
+// ★ どんな記号が来ても大丈夫なように改良したよ！
 function buildTimeOptions(hourRange) {
   const select = document.getElementById("custTime");
   select.innerHTML = '<option value="">時間を選択してください</option>';
-  
   if (!hourRange || !hourRange.includes(":")) return;
 
-  // 「13:00-18:00」や「13:00〜18:00」を分割
-  const parts = hourRange.split(/[-〜]/);
+  // いろんな記号（- 〜 ~ ー）で分割できるようにしたよ
+  const parts = hourRange.split(/[-〜~ー]/);
   if (parts.length !== 2) return;
 
   try {
-    let startParts = parts[0].trim().split(':');
-    let endParts = parts[1].trim().split(':');
-    
-    let startMin = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-    let endMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
-
-    for (let m = startMin; m <= endMin; m += 15) {
-      let hh = Math.floor(m / 60).toString().padStart(2, '0');
-      let mm = (m % 60).toString().padStart(2, '0');
-      let timeStr = `${hh}:${mm}`;
+    const startM = toMin(parts[0]);
+    const endM = toMin(parts[1]);
+    for (let m = startM; m <= endM; m += 15) {
+      let h = Math.floor(m / 60).toString().padStart(2,'0');
+      let min = (m % 60).toString().padStart(2,'0');
       let opt = document.createElement("option");
-      opt.value = timeStr; opt.textContent = timeStr;
+      opt.value = `${h}:${min}`; opt.textContent = `${h}:${min}`;
       select.appendChild(opt);
     }
-  } catch(e) { console.error("Time logic error", e); }
+  } catch(e){}
 }
+function toMin(s){ let [h,m]=s.trim().split(':').map(Number); return h*60+m; }
 
 async function loadMenu(){
   const params = new URLSearchParams(window.location.search);
   const sheetName = params.get("sheet") || "tanakamenu";
-  // はるちゃんのスプシを読み込み
   const url = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${sheetName}`;
-
   try {
     const res = await fetch(url);
     const data = await res.json();
-    
-    // ★ ここを強化！ A列(category)を見てB列(name)を抜き出す
-    data.forEach(row => {
-      const cat = safeText(row.category);
-      if(cat === "info_date") infoDataObj.date = safeText(row.name);
-      if(cat === "info_place") infoDataObj.place = safeText(row.name);
-      if(cat === "info_hours") infoDataObj.hours = safeText(row.name);
+    data.forEach(r => {
+      const c = safeText(r.category);
+      if(c === "info_date") infoDataObj.date = safeText(r.name);
+      if(c === "info_place") infoDataObj.place = safeText(r.name);
+      if(c === "info_hours") infoDataObj.hours = safeText(r.name);
     });
-
-    document.getElementById("infoDate").innerText = infoDataObj.date || "未設定";
-    document.getElementById("infoPlace").innerText = infoDataObj.place || "未設定";
-    document.getElementById("infoHours").innerText = infoDataObj.hours || "未設定";
-    
-    // 時間リストを作成（ここでinfo_hoursが使われるよ）
+    document.getElementById("infoDate").innerText = infoDataObj.date;
+    document.getElementById("infoPlace").innerText = infoDataObj.place;
+    document.getElementById("infoHours").innerText = infoDataObj.hours;
     buildTimeOptions(infoDataObj.hours);
 
-    // 画像（header）を表示
     const imgArea = document.getElementById("menuImageArea");
-    data.filter(it => safeText(it.category) === "header").forEach(it => {
+    data.filter(it => safeText(it.category)==="header").forEach(it => {
       const src = it.image || it.drive_link;
-      if(src){
-        const img = document.createElement("img");
-        img.src = src; img.className = "pg-menu-image";
-        imgArea.appendChild(img);
-      }
+      if(src){ let img=document.createElement("img"); img.src=src; img.className="pg-menu-image"; imgArea.appendChild(img); }
     });
 
-    // 商品を表示
     const menuArea = document.getElementById("menuArea");
-    menuArea.innerHTML = "";
     const items = data.filter(it => it.active === "TRUE" && it.price && !safeText(it.category).startsWith("info_") && safeText(it.category) !== "header");
-    
     const cats = [...new Set(items.map(it => it.category))];
     cats.forEach(c => {
-      let tag = document.createElement("div"); tag.className="pg-section-tag pg-cat-tag"; tag.innerText=c;
+      let tag=document.createElement("div"); tag.className="pg-section-tag pg-cat-tag"; tag.innerText=c;
       menuArea.appendChild(tag);
       items.filter(it => it.category === c).forEach(item => {
-        let row = document.createElement("div"); row.className="pg-row";
-        row.innerHTML = `
-          <div class="pg-item-left">
-            <div class="pg-item-name">${item.name}</div>
-            <span class="pg-price-tag">${item.price}円</span>
-          </div>
-          <div class="pg-qty-wrap">
-            <input type="number" class="pg-qty-input" data-name="${item.name}" data-price="${item.price}" value="0" min="0" oninput="updateUI()">
-          </div>`;
+        let row=document.createElement("div"); row.className="pg-row";
+        row.innerHTML=`<div class="pg-item-left"><div class="pg-item-name">${item.name}</div><span class="pg-price-tag">${item.price}円</span></div>
+          <div class="pg-qty-wrap"><input type="number" class="pg-qty-input" data-name="${item.name}" data-price="${item.price}" value="0" min="0" oninput="updateUI()"></div>`;
         menuArea.appendChild(row);
       });
     });
-  } catch(e){ document.getElementById("menuArea").innerText="読み込みに失敗しました。"; }
+  } catch(e){}
 }
 
 function updateUI(){
   const name = safeText(document.getElementById("custName").value);
   const time = safeText(document.getElementById("custTime").value);
   const inputs = document.querySelectorAll(".pg-qty-input");
-  let total = 0; let hasItem = false;
+  let total = 0, hasItem = false;
   inputs.forEach(el => {
     let q = parseInt(el.value) || 0;
     if(q > 0){ total += q * parseInt(el.dataset.price); hasItem = true; el.classList.add("has-value"); }
@@ -188,20 +158,18 @@ function updateUI(){
   else btn.classList.add("disabled");
 }
 
-function sendLine(){
+document.getElementById("sendLineBtn").onclick = () => {
   const name = safeText(document.getElementById("custName").value);
   const time = safeText(document.getElementById("custTime").value);
   const inputs = document.querySelectorAll(".pg-qty-input");
-  let list = []; let total = 0; let count = 0;
+  let list = [], total = 0, count = 0;
   inputs.forEach(el => {
     let q = parseInt(el.value) || 0;
     if(q > 0){ list.push(`${el.dataset.name} ×${q}`); total += q * parseInt(el.dataset.price); count += q; }
   });
   const msg = `【${time}】\n\n${list.join("\n")}\n\nーーーーーーーーーー\n${name}様\n合計 : ${count}枚 / ${total}円\n${infoDataObj.date} ${infoDataObj.place}`;
   location.href = LINE_SEND_URL_BASE + encodeURIComponent(msg);
-}
-
-document.getElementById("sendLineBtn").onclick = sendLine;
+};
 document.getElementById("custName").oninput = updateUI;
 document.getElementById("custTime").onchange = updateUI;
 loadMenu();
