@@ -17,6 +17,9 @@
       --gold:#f0c36d;
       --badge-bg:#fff3cd;
       --badge-text:#8a5a00;
+      --popular-bg:#fff3f4;
+      --popular-border:#f3c7cc;
+      --popular-text:#b94b5a;
     }
 
     body{
@@ -102,15 +105,25 @@
       background:#fff;
     }
 
-    .pg-cat-tag{
-      background:var(--beige);
-      color:#6b4f3a;
+    .pg-section-tag{
       padding:12px 14px;
       border-radius:14px;
       margin:20px 0 8px;
       font-size:15px;
       font-weight:900;
-      border:1px solid #eadfd3;
+      border:1px solid;
+    }
+
+    .pg-popular-tag{
+      background:var(--popular-bg);
+      color:var(--popular-text);
+      border-color:var(--popular-border);
+    }
+
+    .pg-cat-tag{
+      background:var(--beige);
+      color:#6b4f3a;
+      border-color:#eadfd3;
     }
 
     .pg-row{
@@ -129,16 +142,6 @@
       gap:10px;
       flex:1;
       min-width:0;
-    }
-
-    .pg-thumb{
-      width:56px;
-      height:56px;
-      object-fit:cover;
-      border-radius:10px;
-      border:1px solid #eee;
-      background:#fafafa;
-      flex-shrink:0;
     }
 
     .pg-name-box{
@@ -174,16 +177,16 @@
     }
 
     .pg-qty-wrap{
-      width:64px;
+      width:70px;
       flex-shrink:0;
     }
 
     .pg-qty-input{
       width:100%;
-      height:42px;
+      height:46px;
       border:1px solid #ccc;
       border-radius:10px;
-      font-size:18px;
+      font-size:20px;
       font-weight:900;
       text-align:center;
       box-sizing:border-box;
@@ -260,18 +263,15 @@
       .pg-row{
         padding:12px 4px;
       }
-      .pg-thumb{
-        width:52px;
-        height:52px;
-      }
       .pg-item-name{
         font-size:15px;
       }
       .pg-qty-wrap{
-        width:58px;
+        width:70px;
       }
       .pg-qty-input{
-        font-size:17px;
+        font-size:20px;
+        height:46px;
       }
     }
   </style>
@@ -296,8 +296,6 @@
       ※ご注文内容の訂正や補足は、LINEメッセージでお気軽にお知らせください
     </div>
 
-    <div id="menuImageArea"></div>
-
     <div class="pg-card">
       <span class="pg-title">■ お名前</span>
       <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎" />
@@ -309,6 +307,8 @@
         <option value="">時間を選択してください</option>
       </select>
     </div>
+
+    <div id="menuImageArea"></div>
 
     <div id="menuArea">
       <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
@@ -365,6 +365,10 @@ function isActive(v){
 
 function isHeaderCategory(cat){
   return safeText(cat).toLowerCase() === "header";
+}
+
+function isPopularBadge(badge){
+  return safeText(badge) === "🍓人気";
 }
 
 function buildTimeOptions(){
@@ -447,15 +451,6 @@ function makeMenuRow(item){
   const left = document.createElement("div");
   left.className = "pg-item-left";
 
-  if (safeText(item.image)){
-    const img = document.createElement("img");
-    img.className = "pg-thumb";
-    img.src = item.image;
-    img.alt = item.name;
-    img.loading = "lazy";
-    left.appendChild(img);
-  }
-
   const nameBox = document.createElement("div");
   nameBox.className = "pg-name-box";
 
@@ -481,6 +476,47 @@ function makeMenuRow(item){
   row.appendChild(makeQtyInput(item));
 
   return row;
+}
+
+function makeSectionTag(text, className){
+  const tag = document.createElement("div");
+  tag.className = `pg-section-tag ${className}`;
+  tag.textContent = text;
+  return tag;
+}
+
+function renderPopularSection(menuArea, items){
+  if (!items.length) return;
+
+  menuArea.appendChild(makeSectionTag("🔥人気メニュー", "pg-popular-tag"));
+
+  for (const item of items){
+    menuArea.appendChild(makeMenuRow(item));
+  }
+}
+
+function renderCategorySections(menuArea, items){
+  const categoryOrder = [];
+  const byCat = new Map();
+
+  for (const it of items){
+    if (!byCat.has(it.category)){
+      byCat.set(it.category, []);
+      categoryOrder.push(it.category);
+    }
+    byCat.get(it.category).push(it);
+  }
+
+  for (const cat of categoryOrder){
+    const list = byCat.get(cat);
+    if (!list || !list.length) continue;
+
+    menuArea.appendChild(makeSectionTag(cat, "pg-cat-tag"));
+
+    for (const item of list){
+      menuArea.appendChild(makeMenuRow(item));
+    }
+  }
 }
 
 async function loadMenuFromSheet(){
@@ -532,36 +568,19 @@ async function loadMenuFromSheet(){
       return true;
     });
 
-    const categoryOrder = [];
-    const byCat = new Map();
-
-    for (const it of visibleMenuItems){
-      if (!byCat.has(it.category)){
-        byCat.set(it.category, []);
-        categoryOrder.push(it.category);
-      }
-      byCat.get(it.category).push(it);
-    }
+    const popularItems = visibleMenuItems.filter(it => isPopularBadge(it.badge));
+    const normalItems = visibleMenuItems.filter(it => !isPopularBadge(it.badge));
 
     menuArea.innerHTML = "";
 
-    for (const cat of categoryOrder){
-      const list = byCat.get(cat);
-      if (!list || !list.length) continue;
-
-      const catTag = document.createElement("div");
-      catTag.className = "pg-cat-tag";
-      catTag.textContent = cat;
-      menuArea.appendChild(catTag);
-
-      for (const item of list){
-        menuArea.appendChild(makeMenuRow(item));
-      }
-    }
-
     if (!visibleMenuItems.length){
       menuArea.innerHTML = `<div class="pg-loading">現在表示できるメニューがありません。</div>`;
+      updateTotalAndButton();
+      return;
     }
+
+    renderPopularSection(menuArea, popularItems);
+    renderCategorySections(menuArea, normalItems);
 
     updateTotalAndButton();
   }catch(e){
