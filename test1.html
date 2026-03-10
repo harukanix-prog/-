@@ -1,80 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🐧 ご予約注文フォーム</title>
-  <style>
-    /* （中略：デザイン部分は以前と同じなのでそのまま貼り付けてね） */
-    :root{ --blue:#3498db; --line:#06C755; --danger:#e74c3c; --border:#eee; --muted:#777; --beige:#f6efe7; --gold:#f0c36d; --badge-bg:#fff3cd; --badge-text:#8a5a00; --popular-bg:#fff3f4; --popular-border:#f3c7cc; --popular-text:#b94b5a; }
-    body{ margin:0; background:#f6f6f6; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif; color:#333; -webkit-text-size-adjust:100%; }
-    #pg-form{ max-width:720px; margin:0 auto; padding:12px 12px 180px; box-sizing:border-box; }
-    h1{ text-align:center; color:#333; margin:10px 0 16px; font-size:20px; font-weight:900; }
-    .pg-fixed-info{ background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; border:1px solid #eee; line-height:1.7; font-size:15px; font-weight:700; }
-    .pg-info-box{ background:#fff8e8; border:2px solid var(--gold); padding:14px; border-radius:16px; margin:12px 0 18px 0; font-size:14px; line-height:1.9; }
-    .pg-menu-image-wrap{ margin-bottom:20px; }
-    .pg-menu-image{ width:100%; display:block; border-radius:12px; margin-bottom:20px; background:#fff; border:1px solid #eee; }
-    .pg-card{ background:#fff; border:1px solid var(--border); padding:14px; border-radius:16px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
-    .pg-title{ font-weight:900; font-size:15px; margin-bottom:8px; display:block; }
-    .pg-input-field{ width:100%; padding:14px 12px; border:1px solid #ccc; border-radius:10px; font-size:18px; box-sizing:border-box; background:#fff; }
-    .pg-section-tag{ padding:12px 14px; border-radius:14px; margin:20px 0 8px; font-size:15px; font-weight:900; border:1px solid; }
-    .pg-popular-tag{ background:var(--popular-bg); color:var(--popular-text); border-color:var(--popular-border); }
-    .pg-cat-tag{ background:var(--beige); color:#6b4f3a; border-color:#eadfd3; }
-    .pg-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 8px; border-bottom:1px solid #eee; background:#fff; gap:10px; }
-    .pg-item-left{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
-    .pg-name-box{ flex:1; min-width:0; }
-    .pg-badge{ display:inline-block; background:var(--badge-bg); color:var(--badge-text); font-size:12px; font-weight:900; padding:6px 8px; border-radius:999px; margin-bottom:6px; }
-    .pg-item-name{ font-weight:900; font-size:16px; line-height:1.35; }
-    .pg-price-tag{ color:var(--danger); font-size:13px; margin-top:4px; font-weight:900; display:block; }
-    .pg-qty-wrap{ width:70px; flex-shrink:0; }
-    .pg-qty-input{ width:100%; height:46px; border:1px solid #ccc; border-radius:10px; font-size:20px; font-weight:900; text-align:center; box-sizing:border-box; background:#f3f3f3; color:#999; }
-    .pg-qty-input.has-value{ background:#fff; color:#333; border-color:#3498db; }
-    .pg-footer-bar{ position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:14px 12px; border-top:3px solid var(--blue); text-align:center; z-index:9999; box-sizing:border-box; }
-    .pg-total-txt{ font-size:18px; font-weight:900; margin-bottom:10px; }
-    .pg-btn-line{ display:block; background:var(--line); color:#fff; text-decoration:none; padding:16px; border-radius:999px; font-weight:900; font-size:18px; box-shadow:0 4px 0 #05a346; }
-    .pg-btn-line.disabled{ background:#cfcfcf; box-shadow:none; pointer-events:none; }
-    .pg-loading{ color:var(--muted); font-size:14px; padding:10px 0; }
-  </style>
-</head>
-
-<body>
-  <div id="pg-form">
-    <h1 id="pageTitle">🐧 ご予約注文フォーム</h1>
-    <div class="pg-fixed-info">
-      <div><strong>ご予約日：</strong><span id="infoDate">読み込み中…</span></div>
-      <div><strong>出店場所：</strong><span id="infoPlace">読み込み中…</span></div>
-      <div><strong>営業時間：</strong><span id="infoHours">読み込み中…</span></div>
-    </div>
-
-    <div class="pg-info-box">
-      🐧 事前予約でスムーズにお渡しできます<br><br>
-      📱 お支払いは当日キッチンカーでの現地決済です<br>
-      （現金・PayPayなど対応）
-    </div>
-
-    <div class="pg-card">
-      <span class="pg-title">■ お名前</span>
-      <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎" />
-    </div>
-
-    <div class="pg-card">
-      <span class="pg-title">■ お受け取り希望時間</span>
-      <select id="custTime" class="pg-input-field">
-        <option value="">読み込み中…</option>
-      </select>
-    </div>
-
-    <div id="menuImageArea"></div>
-    <div id="menuArea">
-      <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
-    </div>
-  </div>
-
-  <div class="pg-footer-bar">
-    <div class="pg-total-txt">合計：<span id="total-val" style="color:#e74c3c; font-size:26px;">0</span>円</div>
-    <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">お名前・時間・メニューを入力してね</a>
-  </div>
-
 <script>
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
@@ -83,14 +6,12 @@ let infoDataObj = { date: "", place: "", hours: "" };
 
 function safeText(v){ return (v ?? "").toString().trim(); }
 
-// 営業時間を15分刻みで生成
+// ★ 15分刻みの時間リストを作る
 function buildTimeOptions(hourRange) {
   const select = document.getElementById("custTime");
   select.innerHTML = '<option value="">時間を選択してください</option>';
-  if (!hourRange || !hourRange.includes(":")) {
-    select.innerHTML = '<option value="">時間設定エラー</option>';
-    return;
-  }
+  
+  if (!hourRange || !hourRange.includes(":")) return;
 
   const times = hourRange.split(/[-〜]/);
   if (times.length !== 2) return;
@@ -127,37 +48,44 @@ async function loadMenuFromSheet(){
     const res = await fetch(url);
     const data = await res.json();
     
-    // Info情報の抽出
-    const infoDate = data.find(it => it.category === "info_date");
-    const infoPlace = data.find(it => it.category === "info_place");
-    const infoHours = data.find(it => it.category === "info_hours");
+    // ★ はるちゃんのアイデア！Category列の中身を見てName列を拾う
+    const dateRow = data.find(it => safeText(it.category) === "info_date");
+    const placeRow = data.find(it => safeText(it.category) === "info_place");
+    const hoursRow = data.find(it => safeText(it.category) === "info_hours");
 
-    infoDataObj.date = safeText(infoDate?.name) || "未設定";
-    infoDataObj.place = safeText(infoPlace?.name) || "未設定";
-    infoDataObj.hours = safeText(infoHours?.name) || "未設定";
+    infoDataObj.date = safeText(dateRow?.name) || "未設定";
+    infoDataObj.place = safeText(placeRow?.name) || "未設定";
+    infoDataObj.hours = safeText(hoursRow?.name) || "未設定";
 
     document.getElementById("infoDate").textContent = infoDataObj.date;
     document.getElementById("infoPlace").textContent = infoDataObj.place;
     document.getElementById("infoHours").textContent = infoDataObj.hours;
+    
+    // 営業時間を元にリスト生成
     buildTimeOptions(infoDataObj.hours);
 
-    // メニュー描画
-    const menuArea = document.getElementById("menuArea");
-    menuArea.innerHTML = "";
-    
-    // 画像ヘッダー
-    const headerItems = data.filter(it => it.category === "header" && it.image);
+    // 画像ヘッダー（image または drive_link 列から取得）
     const imageArea = document.getElementById("menuImageArea");
-    headerItems.forEach(it => {
-      const img = document.createElement("img");
-      img.src = it.image; img.className = "pg-menu-image";
-      imageArea.appendChild(img);
+    imageArea.innerHTML = "";
+    data.filter(it => safeText(it.category) === "header").forEach(it => {
+      const src = it.drive_link || it.image;
+      if(src) {
+        const img = document.createElement("img");
+        img.src = src; img.className = "pg-menu-image";
+        imageArea.appendChild(img);
+      }
     });
 
-    // メニュー項目
-    const visibleItems = data.filter(it => it.active === "TRUE" && it.price && !it.category.startsWith("info_") && it.category !== "header");
+    // メニュー項目（activeがTRUEのもの）
+    const menuArea = document.getElementById("menuArea");
+    menuArea.innerHTML = "";
+    const visibleItems = data.filter(it => 
+      it.active === "TRUE" && 
+      it.price && 
+      !safeText(it.category).startsWith("info_") && 
+      safeText(it.category) !== "header"
+    );
     
-    // カテゴリごとに表示
     const categories = [...new Set(visibleItems.map(it => it.category))];
     categories.forEach(cat => {
       const catTag = document.createElement("div");
@@ -184,7 +112,7 @@ async function loadMenuFromSheet(){
     });
 
   } catch(e) {
-    document.getElementById("menuArea").innerHTML = "読み込みエラー。シート名を確認してね！";
+    document.getElementById("menuArea").innerHTML = "読み込みエラー。Category列の文字を確認してね！";
   }
 }
 
@@ -194,14 +122,9 @@ function updateTotalAndButton(){
   const inputs = document.querySelectorAll(".pg-qty-input");
   let total = 0, hasMenu = false;
   inputs.forEach(el => {
-    const q = parseInt(el.value);
-    if(q > 0) {
-      total += q * parseInt(el.dataset.price);
-      hasMenu = true;
-      el.classList.add("has-value");
-    } else {
-      el.classList.remove("has-value");
-    }
+    const q = parseInt(el.value) || 0;
+    if(q > 0) { total += q * parseInt(el.dataset.price); hasMenu = true; el.classList.add("has-value"); }
+    else { el.classList.remove("has-value"); }
   });
   document.getElementById("total-val").textContent = total.toLocaleString();
   const btn = document.getElementById("sendLineBtn");
@@ -215,7 +138,7 @@ function buildLineMessage(){
   const inputs = document.querySelectorAll(".pg-qty-input");
   let items = [], total = 0, count = 0;
   inputs.forEach(el => {
-    const q = parseInt(el.value);
+    const q = parseInt(el.value) || 0;
     if(q > 0) {
       items.push(`${el.dataset.name} ×${q}`);
       total += q * parseInt(el.dataset.price);
@@ -226,12 +149,12 @@ function buildLineMessage(){
 }
 
 document.getElementById("sendLineBtn").onclick = () => {
-  location.href = LINE_SEND_URL_BASE + encodeURIComponent(buildLineMessage());
+  if(!document.getElementById("sendLineBtn").classList.contains("disabled")) {
+    location.href = LINE_SEND_URL_BASE + encodeURIComponent(buildLineMessage());
+  }
 };
 document.getElementById("custName").oninput = updateTotalAndButton;
 document.getElementById("custTime").onchange = updateTotalAndButton;
 
 loadMenuFromSheet();
 </script>
-</body>
-</html>
