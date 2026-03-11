@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> ぺんぎんKITCHEN  🐧</title>
+  <title>ぺんぎんKITCHEN 🐧</title>
   <style>
     :root{
       --blue:#3498db;
@@ -20,6 +20,7 @@
       --popular-text:#b94b5a;
       --page-bg:#f4f8fb;
       --title-brown:#5f4b3b;
+      --card-bg:#f7f7f7;
     }
 
     body{
@@ -41,7 +42,7 @@
       text-align:center;
       color:var(--title-brown);
       margin:10px 0 14px;
-      font-size:26px;
+      font-size:28px;
       line-height:1.2;
       font-weight:900;
       letter-spacing:0.01em;
@@ -84,7 +85,7 @@
     }
 
     .pg-card{
-      background:#fff;
+      background:#f3f3f3;
       border:1px solid var(--border);
       padding:14px;
       border-radius:16px;
@@ -250,7 +251,7 @@
       border-radius:999px;
       font-weight:900;
       font-size:18px;
-      box-shadow:0 4px 0 #05a346;
+      box-shadow:0 4px 0 #25a25a;
     }
 
     .pg-btn-line.disabled{
@@ -263,6 +264,34 @@
       color:var(--muted);
       font-size:14px;
       padding:10px 0;
+    }
+
+    .pg-status{
+      color:var(--muted);
+      font-size:13px;
+      padding-top:8px;
+      line-height:1.4;
+    }
+
+    .pg-warn{
+      color:#a85a00;
+      font-weight:700;
+    }
+
+    .pg-manual-wrap{
+      margin-top:10px;
+      display:none;
+    }
+
+    .pg-mini-btn{
+      margin-top:10px;
+      display:inline-block;
+      border:1px solid #ddd;
+      background:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
     }
 
     @media (max-width: 480px){
@@ -305,23 +334,38 @@
 
 <body>
   <div id="pg-form">
-    <h1 id="pageTitle"> ぺんぎんKITCHEN 🐧</h1>
+    <h1 id="pageTitle">ぺんぎんKITCHEN 🐧</h1>
 
     <div class="pg-fixed-info">
-      <div><strong>ご予約日：</strong><span id="infoDate">読み込み中…</span></div>
-      <div><strong>出店場所：</strong><span id="infoPlace">読み込み中…</span></div>
-      <div><strong>営業時間：</strong><span id="infoHours">読み込み中…</span></div>
+      <div><strong>ご予約日：</strong><span id="infoDate">未設定</span></div>
+      <div><strong>出店場所：</strong><span id="infoPlace">未設定</span></div>
+      <div><strong>営業時間：</strong><span id="infoHours">未設定</span></div>
     </div>
 
     <div class="pg-info-box">
       🐧 事前予約でスムーズにお渡しできます<br>
-      💰️ お支払いは当日キッチンカーでの現地決済です<br>
+      💰 お支払いは当日キッチンカーでの現地決済です<br>
       （現金・PayPayやクレジットカード等）
     </div>
 
     <div class="pg-card">
       <span class="pg-title">■ お名前</span>
       <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎" />
+    </div>
+
+    <div class="pg-card">
+      <span class="pg-title">■ 出店場所を選択</span>
+      <select id="custPlace" class="pg-input-field">
+        <option value="">場所を選択してください</option>
+      </select>
+      <div id="placeLoading" class="pg-loading">出店日程を読み込み中…</div>
+      <div id="placeStatusNote" class="pg-status"></div>
+      <button type="button" id="retryPlaceBtn" class="pg-mini-btn" style="display:none;">もう一度読み込む</button>
+
+      <div id="manualPlaceWrap" class="pg-manual-wrap">
+        <div class="pg-status pg-warn">※日程が読み込めない時だけ、ここに手入力できます</div>
+        <input type="text" id="custPlaceManual" class="pg-input-field" placeholder="例：3/18(水) そよら新金岡イオン 12-17時" />
+      </div>
     </div>
 
     <div class="pg-card">
@@ -338,7 +382,7 @@
     </div>
 
     <div class="pg-help">
-      ※ご注文内容の訂正や補足は、LINEメッセージでお気軽にお知らせください。<br>
+      ※細かいご要望（トッピング等）はLINEでお気軽にお知らせください🐧<br>
       ※売り切れ商品は表示されない場合があります。
     </div>
   </div>
@@ -348,27 +392,94 @@
       🐧お会計ペン：<span id="total-val" style="color:#e74c3c; font-size:26px;">0</span>円
     </div>
     <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">
-      お名前・時間・メニューを入力してね
+      お名前・場所・時間・メニューを入力してね
     </a>
   </div>
 
 <script>
+/* =========================
+   ✅ ここだけ書き換えゾーン
+========================= */
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
-const DEFAULT_SHEET_NAME = "menu";
+const SHEET_NAME = "menu";
+const ICAL_PROXY_URL = "https://script.google.com/macros/s/AKfycbxPngyHgUoHPTUGYgkL84gcZyHt5lfCpa3LAFApBYoQUR2HgBkuvDfdpOiEirVpAKDR/exec";
+const SHOW_DAYS = 45;
+/* ========================= */
+
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
+const PLACE_FETCH_TIMEOUT_MS = 8000;
+const PLACE_CACHE_KEY = "pg_place_cache_v2";
+const PLACE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 
-const TIMES = [
-  "11:00","11:15","11:30","11:45",
-  "12:00","12:15","12:30","12:45",
-  "13:00","13:15","13:30","13:45",
-  "14:00","14:15","14:30","14:45",
-  "15:00","15:15","15:30"
-];
+let selectedDateText = "未設定";
+let selectedPlaceText = "未設定";
+let selectedHoursText = "未設定";
 
-let fixedPlaceText = "";
+function safeText(v){ return (v ?? "").toString().trim(); }
 
-function safeText(v){
-  return (v ?? "").toString().trim();
+function weekdayJa(dateObj){
+  const w = ["日","月","火","水","木","金","土"];
+  return w[dateObj.getDay()];
+}
+
+function formatDateMdJaFromISO(iso){
+  const y = Number(iso.slice(0,4));
+  const m = Number(iso.slice(5,7)) - 1;
+  const d = Number(iso.slice(8,10));
+  const dt = new Date(y, m, d);
+  return `${m+1}/${d}(${weekdayJa(dt)})`;
+}
+
+function parsePlaceLabel(label){
+  const txt = safeText(label);
+  if (!txt) {
+    return { date:"未設定", place:"未設定", hours:"未設定" };
+  }
+
+  const hoursMatch = txt.match(/(\d{1,2}:\d{2}\s*[-〜~]\s*\d{1,2}:\d{2}|\d{1,2}\s*[-〜~]\s*\d{1,2}時?)/);
+  const dateMatch = txt.match(/^(\d{1,2}\/\d{1,2}\([日月火水木金土]\))/);
+
+  const dateText = dateMatch ? dateMatch[1] : "未設定";
+  const hoursText = hoursMatch ? hoursMatch[1].replace(/\s*/g,"") : "未設定";
+
+  let placeText = txt;
+  if (dateMatch) placeText = placeText.replace(dateMatch[1], "").trim();
+  if (hoursMatch) placeText = placeText.replace(hoursMatch[1], "").trim();
+  placeText = placeText.replace(/\s+/g, " ").trim();
+
+  if (!placeText) placeText = txt;
+
+  return {
+    date: dateText,
+    place: placeText,
+    hours: hoursText
+  };
+}
+
+function updateInfoCardFromPlace(label){
+  const parsed = parsePlaceLabel(label);
+  selectedDateText = parsed.date;
+  selectedPlaceText = parsed.place;
+  selectedHoursText = parsed.hours;
+
+  document.getElementById("infoDate").textContent = selectedDateText;
+  document.getElementById("infoPlace").textContent = selectedPlaceText;
+  document.getElementById("infoHours").textContent = selectedHoursText;
+}
+
+function buildTimeOptions(){
+  const sel = document.getElementById("custTime");
+  const times = [
+    "11:30ごろ","12:00ごろ","12:30ごろ","13:00ごろ","13:30ごろ",
+    "14:00ごろ","14:30ごろ","15:00ごろ","15:30ごろ","16:00ごろ"
+  ];
+  sel.innerHTML = '<option value="">時間を選択してください</option>';
+  for (const t of times){
+    const o = document.createElement("option");
+    o.value = t;
+    o.textContent = t;
+    sel.appendChild(o);
+  }
 }
 
 function parseGviz(text){
@@ -378,18 +489,13 @@ function parseGviz(text){
   return JSON.parse(json);
 }
 
-function getSheetNameFromUrl(){
-  const params = new URLSearchParams(window.location.search);
-  return safeText(params.get("sheet")) || DEFAULT_SHEET_NAME;
-}
-
-function gvizUrl(sheetName) {
-  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+function gvizUrl() {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
 }
 
 function isActive(v){
-  const s = safeText(v);
-  return v === true || s === "TRUE" || s === "true" || s === "1" || s === "✔";
+  const s = safeText(v).toLowerCase();
+  return (v === true || s === "true" || s === "o" || s === "○" || s === "1" || s === "yes" || s === "y" || s === "✔");
 }
 
 function isHeaderCategory(cat){
@@ -398,64 +504,6 @@ function isHeaderCategory(cat){
 
 function isPopularBadge(badge){
   return safeText(badge) === "🔥人気";
-}
-
-function isInfoCategory(cat){
-  const c = safeText(cat).toLowerCase();
-  return c === "info_date" || c === "info_place" || c === "info_hours";
-}
-
-function buildTimeOptions(){
-  const sel = document.getElementById("custTime");
-  sel.innerHTML = '<option value="">時間を選択してください</option>';
-
-  for (const t of TIMES){
-    const o = document.createElement("option");
-    o.value = t;
-    o.textContent = t;
-    sel.appendChild(o);
-  }
-}
-
-function renderHeaderImages(headerItems){
-  const imageArea = document.getElementById("menuImageArea");
-  imageArea.innerHTML = "";
-
-  const validImages = headerItems.filter(item => safeText(item.image));
-
-  if (!validImages.length) return;
-
-  const wrap = document.createElement("div");
-  wrap.className = "pg-menu-image-wrap";
-
-  for (const item of validImages){
-    const img = document.createElement("img");
-    img.className = "pg-menu-image";
-    img.src = item.image;
-    img.alt = item.name || "メニュー画像";
-    img.loading = "lazy";
-    wrap.appendChild(img);
-  }
-
-  imageArea.appendChild(wrap);
-}
-
-function renderInfo(items){
-  const infoDate = items.find(it => safeText(it.category).toLowerCase() === "info_date");
-  const infoPlace = items.find(it => safeText(it.category).toLowerCase() === "info_place");
-  const infoHours = items.find(it => safeText(it.category).toLowerCase() === "info_hours");
-
-  const dateText = safeText(infoDate?.name) || "未設定";
-  const placeText = safeText(infoPlace?.name) || "未設定";
-  const hoursText = safeText(infoHours?.name) || "未設定";
-
-  document.getElementById("infoDate").textContent = dateText;
-  document.getElementById("infoPlace").textContent = placeText;
-  document.getElementById("infoHours").textContent = hoursText;
-
-  fixedPlaceText = `${dateText} ${placeText}`;
-
-  document.title = `🐧 ${placeText} ぺんぎんKITCHEN 🐧`;
 }
 
 function makeQtyInput(item){
@@ -475,10 +523,8 @@ function makeQtyInput(item){
 
   const updateState = () => {
     let val = parseInt(input.value, 10);
-
     if (isNaN(val) || val < 0) val = 0;
     if (val > 20) val = 20;
-
     input.value = String(val);
 
     if (val > 0){
@@ -496,6 +542,28 @@ function makeQtyInput(item){
 
   wrap.appendChild(input);
   return wrap;
+}
+
+function renderHeaderImages(headerItems){
+  const imageArea = document.getElementById("menuImageArea");
+  imageArea.innerHTML = "";
+
+  const validImages = headerItems.filter(item => safeText(item.image));
+  if (!validImages.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "pg-menu-image-wrap";
+
+  for (const item of validImages){
+    const img = document.createElement("img");
+    img.className = "pg-menu-image";
+    img.src = item.image;
+    img.alt = item.name || "メニュー画像";
+    img.loading = "lazy";
+    wrap.appendChild(img);
+  }
+
+  imageArea.appendChild(wrap);
 }
 
 function makeMenuRow(item){
@@ -541,9 +609,7 @@ function makeSectionTag(text, className){
 
 function renderPopularSection(menuArea, items){
   if (!items.length) return;
-
   menuArea.appendChild(makeSectionTag("🔥人気メニュー", "pg-popular-tag"));
-
   for (const item of items){
     menuArea.appendChild(makeMenuRow(item));
   }
@@ -575,10 +641,8 @@ function renderCategorySections(menuArea, items){
 
 async function loadMenuFromSheet(){
   const menuArea = document.getElementById("menuArea");
-  const sheetName = getSheetNameFromUrl();
-
   try{
-    const res = await fetch(gvizUrl(sheetName), { cache: "no-store" });
+    const res = await fetch(gvizUrl(), { cache: "no-store" });
     const txt = await res.text();
     const data = parseGviz(txt);
 
@@ -608,18 +672,15 @@ async function loadMenuFromSheet(){
         badge: safeText(cells[iBadge]),
         image: safeText(cells[iImage])
       };
-    });
+    }).filter(x => x.name && x.price);
 
     items.sort((a,b) => a.sort - b.sort);
-
-    renderInfo(items);
 
     const headerItems = items.filter(it => isHeaderCategory(it.category));
     renderHeaderImages(headerItems);
 
     const visibleMenuItems = items.filter(it => {
       if (isHeaderCategory(it.category)) return false;
-      if (isInfoCategory(it.category)) return false;
       if (!it.active) return false;
       if (!it.name) return false;
       if (!it.price) return false;
@@ -639,107 +700,97 @@ async function loadMenuFromSheet(){
 
     renderPopularSection(menuArea, popularItems);
     renderCategorySections(menuArea, normalItems);
-
     updateTotalAndButton();
+
   }catch(e){
-    document.getElementById("infoDate").textContent = "読み込み失敗";
-    document.getElementById("infoPlace").textContent = getSheetNameFromUrl();
-    document.getElementById("infoHours").textContent = "読み込み失敗";
-    menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>スプレッドシートの公開設定とシート名をご確認ください。</div>`;
+    menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>（スプレッドシートの公開設定を確認してください）</div>`;
   }
 }
 
-function collectOrderLines(){
-  const lines = [];
-  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+function setPlaceStatusNote(text){
+  const el = document.getElementById("placeStatusNote");
+  if (!el) return;
+  el.textContent = text || "";
+}
 
-  qtyInputs.forEach(el => {
-    const q = Number(el.value || 0);
-    if (q > 0){
-      lines.push(`${el.dataset.name} ×${q}`);
+function setManualMode(enable){
+  const manualWrap = document.getElementById("manualPlaceWrap");
+  const retryBtn = document.getElementById("retryPlaceBtn");
+  if (manualWrap) manualWrap.style.display = enable ? "block" : "none";
+  if (retryBtn) retryBtn.style.display = enable ? "inline-block" : "none";
+}
+
+function savePlaceCache(items){
+  try{
+    const payload = { ts: Date.now(), items };
+    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify(payload));
+  }catch(_){}
+}
+
+function loadPlaceCache(){
+  try{
+    const raw = localStorage.getItem(PLACE_CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj?.ts || !Array.isArray(obj.items)) return null;
+    if (Date.now() - obj.ts > PLACE_CACHE_TTL_MS) return null;
+    return obj.items;
+  }catch(_){ return null; }
+}
+
+async function fetchWithTimeout(url, ms){
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), ms);
+  try{
+    const res = await fetch(url, { cache:"no-store", signal: controller.signal });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  }finally{
+    clearTimeout(t);
+  }
+}
+
+function fillPlaceSelect(items){
+  const sel = document.getElementById("custPlace");
+  sel.innerHTML = `<option value="">場所を選択してください</option>`;
+
+  for (const it of items){
+    const label = `${formatDateMdJaFromISO(it.date)} ${it.title}`;
+    const o = document.createElement("option");
+    o.value = label;
+    o.textContent = label;
+    sel.appendChild(o);
+  }
+}
+
+async function loadPlaces(){
+  const loading = document.getElementById("placeLoading");
+  try{
+    setPlaceStatusNote("");
+    setManualMode(false);
+
+    const cached = loadPlaceCache();
+    if (cached && cached.length){
+      fillPlaceSelect(cached);
+      if (loading) loading.textContent = "出店日程（キャッシュ表示）";
     }
-  });
 
-  return lines;
-}
+    const data = await fetchWithTimeout(ICAL_PROXY_URL, PLACE_FETCH_TIMEOUT_MS);
+    const items = Array.isArray(data.items) ? data.items : [];
+    if (!items.length) throw new Error("no items");
 
-function getTotal(){
-  let total = 0;
-  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+    fillPlaceSelect(items);
+    savePlaceCache(items);
+    if (loading) loading.textContent = `出店日程：最新を表示中（〜${SHOW_DAYS}日）`;
 
-  qtyInputs.forEach(el => {
-    const q = Number(el.value || 0);
-    const p = Number(el.dataset.price || 0);
-    total += q * p;
-  });
-
-  return total;
-}
-
-function getTotalQty(){
-  let totalQty = 0;
-  const qtyInputs = document.querySelectorAll(".pg-qty-input");
-
-  qtyInputs.forEach(el => {
-    const q = Number(el.value || 0);
-    totalQty += q;
-  });
-
-  return totalQty;
-}
-
-function updateTotalAndButton(){
-  const name = safeText(document.getElementById("custName").value);
-  const time = safeText(document.getElementById("custTime").value);
-  const hasMenu = collectOrderLines().length > 0;
-  const total = getTotal();
-
-  document.getElementById("total-val").textContent = String(total);
-
-  const btn = document.getElementById("sendLineBtn");
-  if (name && time && hasMenu){
-    btn.classList.remove("disabled");
-    btn.textContent = "LINEで予約内容を送る";
-  }else{
-    btn.classList.add("disabled");
-    btn.textContent = "お名前・時間・メニューを入力してね";
+  }catch(e){
+    if (loading) loading.textContent = "出店日程の読み込みに失敗しました";
+    setPlaceStatusNote("読み込みに失敗したので、手入力に切り替えできます");
+    setManualMode(true);
   }
 }
 
-function buildLineMessage(){
-  const name = safeText(document.getElementById("custName").value);
-  const time = safeText(document.getElementById("custTime").value);
-  const lines = collectOrderLines();
-  const total = getTotal();
-  const totalQty = getTotalQty();
-
-  return `【${time}】
-
-${lines.join("\n")}
-
-ーーーーーーーーー
-${name}
-合計：${totalQty}枚 / ${total}円
-${fixedPlaceText}`;
-}
-
-function onSendLine(){
-  const btn = document.getElementById("sendLineBtn");
-  if (btn.classList.contains("disabled")) return;
-
-  const msg = buildLineMessage();
-  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
-  location.href = url;
-}
-
-function init(){
-  buildTimeOptions();
-  document.getElementById("custName").addEventListener("input", updateTotalAndButton);
-  document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
-  document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
-  loadMenuFromSheet();
-}
-init();
-</script>
-</body>
-</html>
+function getPlaceValue(){
+  const manualWrap = document.getElementById("manualPlaceWrap");
+  if (manualWrap && manualWrap.style.display !== "none"){
+    return safeText(document.getElementById("custPlaceManual").va
