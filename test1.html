@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🐧 ご予約注文フォーム</title>
+  <title>🐧 ぺんぎんKITCHEN 🐧</title>
   <style>
     :root{
       --blue:#3498db;
@@ -37,10 +37,14 @@
 
     h1{
       text-align:center;
-      color:#333;
-      margin:10px 0 16px;
-      font-size:20px;
+      color:#5f4b3b;
+      margin:8px 0 14px;
+      font-size:30px;
+      line-height:1.2;
       font-weight:900;
+      letter-spacing:0.02em;
+      font-family:"Hiragino Maru Gothic ProN","Yuji Boku","Hannotate SC","Comic Sans MS","Noto Sans JP",sans-serif;
+      text-shadow:0 2px 0 rgba(255,255,255,0.8);
     }
 
     .pg-fixed-info{
@@ -57,11 +61,11 @@
     .pg-info-box{
       background:#fff8e8;
       border:2px solid var(--gold);
-      padding:14px;
+      padding:12px 14px;
       border-radius:16px;
-      margin:12px 0 18px 0;
+      margin:12px 0 16px 0;
       font-size:14px;
-      line-height:1.9;
+      line-height:1.75;
     }
 
     .pg-menu-image-wrap{
@@ -231,6 +235,7 @@
       font-size:18px;
       font-weight:900;
       margin-bottom:10px;
+      color:#5f4b3b;
     }
 
     .pg-btn-line{
@@ -258,6 +263,9 @@
     }
 
     @media (max-width: 480px){
+      h1{
+        font-size:26px;
+      }
       .pg-row{
         padding:12px 4px;
       }
@@ -277,7 +285,7 @@
 
 <body>
   <div id="pg-form">
-    <h1 id="pageTitle">🐧 ご予約注文フォーム</h1>
+    <h1 id="pageTitle">🐧ぺんぎんKITCHEN🐧</h1>
 
     <div class="pg-fixed-info">
       <div><strong>ご予約日：</strong><span id="infoDate">読み込み中…</span></div>
@@ -286,12 +294,9 @@
     </div>
 
     <div class="pg-info-box">
-      🐧 事前予約でスムーズにお渡しできます<br><br>
+      🐧 事前予約でスムーズにお渡しできます<br>
       📱 お支払いは当日キッチンカーでの現地決済です<br>
-      （現金・PayPayなどQR決済・クレジットカード対応）<br><br>
-      ✨ 混雑時も予約のお客様を優先してお渡しします<br><br>
-      ※こちらは事前注文のみの受付です<br>
-      ※ご注文内容の訂正や補足は、LINEメッセージでお気軽にお知らせください
+      （現金・PayPayやクレジットカード等）
     </div>
 
     <div class="pg-card">
@@ -320,7 +325,7 @@
 
   <div class="pg-footer-bar">
     <div class="pg-total-txt">
-      合計：<span id="total-val" style="color:#e74c3c; font-size:26px;">0</span>円
+      🐧お会計ペン：<span id="total-val" style="color:#e74c3c; font-size:26px;">0</span>円🐧
     </div>
     <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">
       お名前・時間・メニューを入力してね
@@ -430,8 +435,7 @@ function renderInfo(items){
 
   fixedPlaceText = `${dateText} ${placeText}`;
 
-  document.title = `🐧 ${placeText} ご予約注文フォーム`;
-  document.getElementById("pageTitle").textContent = `🐧 ${placeText} ご予約注文フォーム`;
+  document.title = `🐧 ${placeText} ぺんぎんKITCHEN 🐧`;
 }
 
 function makeQtyInput(item){
@@ -632,7 +636,7 @@ function collectOrderLines(){
   qtyInputs.forEach(el => {
     const q = Number(el.value || 0);
     if (q > 0){
-      lines.push(`${el.dataset.name} × ${q}`);
+      lines.push(`${el.dataset.name} ×${q}`);
     }
   });
 
@@ -650,6 +654,18 @@ function getTotal(){
   });
 
   return total;
+}
+
+function getTotalQty(){
+  let totalQty = 0;
+  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+
+  qtyInputs.forEach(el => {
+    const q = Number(el.value || 0);
+    totalQty += q;
+  });
+
+  return totalQty;
 }
 
 function updateTotalAndButton(){
@@ -675,16 +691,7 @@ function buildLineMessage(){
   const time = safeText(document.getElementById("custTime").value);
   const lines = collectOrderLines();
   const total = getTotal();
-
-  // 合計枚数
-  let totalQty = 0;
-  const qtyInputs = document.querySelectorAll(".pg-qty-input");
-  qtyInputs.forEach(el=>{
-    const q = Number(el.value || 0);
-    totalQty += q;
-  });
-
-  const placeLine = document.querySelector(".pg-fixed-info div:nth-child(2)")?.textContent || "";
+  const totalQty = getTotalQty();
 
   return `【${time}】
 
@@ -693,7 +700,7 @@ ${lines.join("\n")}
 ーーーーーーーーー
 ${name}
 合計：${totalQty}枚 / ${total}円
-${placeLine}`;
+${fixedPlaceText}`;
 }
 
 function onSendLine(){
