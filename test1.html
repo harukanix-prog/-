@@ -676,15 +676,24 @@ function buildLineMessage(){
   const lines = collectOrderLines();
   const total = getTotal();
 
-  return `【予約注文】
-■お名前：${name}
-■場所：${fixedPlaceText}
-■時間：${time}
+  // 合計枚数
+  let totalQty = 0;
+  const qtyInputs = document.querySelectorAll(".pg-qty-input");
+  qtyInputs.forEach(el=>{
+    const q = Number(el.value || 0);
+    totalQty += q;
+  });
 
-■内容：
-・${lines.join("\n・")}
+  const placeLine = document.querySelector(".pg-fixed-info div:nth-child(2)")?.textContent || "";
 
-合計：${total}円`;
+  return `【${time}】
+
+${lines.join("\n")}
+
+ーーーーーーーーー
+${name}
+合計：${totalQty}枚 / ${total}円
+${placeLine}`;
 }
 
 function onSendLine(){
