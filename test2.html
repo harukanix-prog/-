@@ -446,7 +446,15 @@ async function loadMenuFromSheet(){
       };
     }).filter(x => x.name && x.price >= 0);
 
-    items.sort((a,b) => a.sort - b.sort);
+   function getPlaceValue(){
+  const manual = safeText(document.getElementById("custPlaceManual").value);
+  const select = safeText(document.getElementById("custPlace").value);
+
+  if (manual) return manual;
+  if (select) return select;
+
+  return "";
+}
 
     const headerItems = items.filter(it => isHeaderCategory(it.category));
     renderHeaderImages(headerItems);
