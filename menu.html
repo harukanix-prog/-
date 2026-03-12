@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> ぺんぎんKITCHEN  🐧</title>
+  <title>ぺんぎんKITCHEN 🐧</title>
   <style>
     :root{
       --blue:#3498db;
@@ -305,7 +305,7 @@
 
 <body>
   <div id="pg-form">
-    <h1 id="pageTitle"> ぺんぎんKITCHEN 🐧</h1>
+    <h1 id="pageTitle">ぺんぎんKITCHEN 🐧</h1>
 
     <div class="pg-fixed-info">
       <div><strong>ご予約日：</strong><span id="infoDate">読み込み中…</span></div>
@@ -356,14 +356,8 @@
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
 const DEFAULT_SHEET_NAME = "menu";
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
-
-const TIMES = [
-  "11:00","11:15","11:30","11:45",
-  "12:00","12:15","12:30","12:45",
-  "13:00","13:15","13:30","13:45",
-  "14:00","14:15","14:30","14:45",
-  "15:00","15:15","15:30"
-];
+const FALLBACK_TIME_RANGE = "11:30〜17:00";
+const TIME_STEP_MINUTES = 15;
 
 let fixedPlaceText = "";
 
@@ -405,11 +399,60 @@ function isInfoCategory(cat){
   return c === "info_date" || c === "info_place" || c === "info_hours";
 }
 
-function buildTimeOptions(){
+function parseTimeRange(str){
+  const raw = safeText(str);
+
+  if (!raw) return null;
+
+  const matches = raw.match(/\d{1,2}:\d{2}/g);
+  if (!matches || matches.length < 2) return null;
+
+  return {
+    start: matches[0],
+    end: matches[1]
+  };
+}
+
+function timeToMinutes(t){
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(min){
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+}
+
+function buildTimesFromRange(timeRange, step = 15){
+  const parsed = parseTimeRange(timeRange);
+  if (!parsed) return [];
+
+  const startMin = timeToMinutes(parsed.start);
+  const endMin = timeToMinutes(parsed.end);
+
+  if (isNaN(startMin) || isNaN(endMin) || startMin > endMin) return [];
+
+  const times = [];
+  for (let t = startMin; t <= endMin; t += step){
+    times.push(minutesToTime(t));
+  }
+
+  return times;
+}
+
+function buildTimeOptions(timeRange){
   const sel = document.getElementById("custTime");
   sel.innerHTML = '<option value="">時間を選択してください</option>';
 
-  for (const t of TIMES){
+  let times = buildTimesFromRange(timeRange, TIME_STEP_MINUTES);
+
+  if (!times.length){
+    times = buildTimesFromRange(FALLBACK_TIME_RANGE, TIME_STEP_MINUTES);
+    console.warn("営業時間の読み取りに失敗したため、既定値を使用します:", timeRange, "→", FALLBACK_TIME_RANGE);
+  }
+
+  for (const t of times){
     const o = document.createElement("option");
     o.value = t;
     o.textContent = t;
@@ -454,8 +497,9 @@ function renderInfo(items){
   document.getElementById("infoHours").textContent = hoursText;
 
   fixedPlaceText = `${dateText} ${placeText}`;
-
   document.title = `🐧 ${placeText} ぺんぎんKITCHEN 🐧`;
+
+  buildTimeOptions(hoursText);
 }
 
 function makeQtyInput(item){
@@ -644,7 +688,8 @@ async function loadMenuFromSheet(){
   }catch(e){
     document.getElementById("infoDate").textContent = "読み込み失敗";
     document.getElementById("infoPlace").textContent = getSheetNameFromUrl();
-    document.getElementById("infoHours").textContent = "読み込み失敗";
+    document.getElementById("infoHours").textContent = FALLBACK_TIME_RANGE;
+    buildTimeOptions(FALLBACK_TIME_RANGE);
     menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>スプレッドシートの公開設定とシート名をご確認ください。</div>`;
   }
 }
@@ -733,7 +778,6 @@ function onSendLine(){
 }
 
 function init(){
-  buildTimeOptions();
   document.getElementById("custName").addEventListener("input", updateTotalAndButton);
   document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
   document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
