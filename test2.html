@@ -446,15 +446,12 @@ async function loadMenuFromSheet(){
       };
     }).filter(x => x.name && x.price >= 0);
 
-   function getPlaceValue(){
-  const manual = safeText(document.getElementById("custPlaceManual").value);
-  const select = safeText(document.getElementById("custPlace").value);
-
-  if (manual) return manual;
-  if (select) return select;
-
-  return "";
-}
+   items.sort((a,b) => {
+  const ap = a.badge?.includes("人気") ? 0 : 1;
+  const bp = b.badge?.includes("人気") ? 0 : 1;
+  if (ap !== bp) return ap - bp;
+  return a.sort - b.sort;
+});
 
     const headerItems = items.filter(it => isHeaderCategory(it.category));
     renderHeaderImages(headerItems);
