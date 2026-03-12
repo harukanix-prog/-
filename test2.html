@@ -1,1 +1,738 @@
-1
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ぺんぎんKITCHEN 🐧</title>
+  <style>
+    :root{
+      --blue:#3498db;
+      --line:#2ecc71;
+      --danger:#e74c3c;
+      --bg:#f4f8fb;
+      --card:#f3f3f3;
+      --border:#eee;
+      --muted:#777;
+      --gold:#f0c36d;
+      --beige:#f6efe7;
+      --badge-bg:#fff3cd;
+      --badge-text:#8a5a00;
+      --title-brown:#5f4b3b;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      color:#333;
+      -webkit-text-size-adjust:100%;
+    }
+
+    #pg-form{
+      max-width:720px;
+      margin:0 auto;
+      padding:12px 12px 185px;
+      box-sizing:border-box;
+    }
+
+    h1{
+      text-align:center;
+      color:var(--title-brown);
+      margin:10px 0 16px;
+      font-size:28px;
+      font-weight:900;
+      line-height:1.2;
+      letter-spacing:0.01em;
+      font-family:"Hiragino Maru Gothic ProN","Yuji Boku","Hannotate SC","Comic Sans MS","Noto Sans JP",sans-serif;
+      text-shadow:0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .pg-info-box{
+      background:#fff8e8;
+      border:2px solid var(--gold);
+      padding:12px 14px;
+      border-radius:16px;
+      margin:12px 0 16px 0;
+      font-size:14px;
+      line-height:1.75;
+    }
+
+    .pg-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:14px;
+      border-radius:16px;
+      margin-bottom:14px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .pg-title{
+      font-weight:900;
+      font-size:15px;
+      margin-bottom:8px;
+      display:block;
+    }
+
+    .pg-input-field{
+      width:100%;
+      padding:14px 12px;
+      border:1px solid #ccc;
+      border-radius:10px;
+      font-size:18px;
+      box-sizing:border-box;
+      background:#fff;
+    }
+
+    .pg-status{
+      color:var(--muted);
+      font-size:13px;
+      padding-top:8px;
+      line-height:1.4;
+    }
+
+    .pg-warn{
+      color:#a85a00;
+      font-weight:700;
+    }
+
+    .pg-manual-wrap{
+      margin-top:10px;
+      display:none;
+    }
+
+    .pg-mini-btn{
+      margin-top:10px;
+      display:inline-block;
+      border:1px solid #ddd;
+      background:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .pg-menu-image-wrap{
+      margin-bottom:18px;
+    }
+
+    .pg-menu-image{
+      width:100%;
+      display:block;
+      border-radius:12px;
+      margin-bottom:16px;
+      background:#fff;
+      border:1px solid #eee;
+    }
+
+    .pg-cat-tag{
+      background:#34495e;
+      color:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      margin:18px 0 10px;
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:0.2px;
+    }
+
+    .pg-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 10px;
+      border:1px solid #eee;
+      background:#fff;
+      border-radius:14px;
+      margin-bottom:8px;
+      gap:10px;
+    }
+
+    .pg-name-box{
+      flex:1;
+      min-width:0;
+    }
+
+    .pg-badge{
+      display:inline-block;
+      background:var(--badge-bg);
+      color:var(--badge-text);
+      font-size:12px;
+      font-weight:900;
+      line-height:1;
+      padding:6px 8px;
+      border-radius:999px;
+      margin-bottom:6px;
+    }
+
+    .pg-item-name{
+      font-weight:900;
+      font-size:17px;
+      line-height:1.3;
+      word-break:break-word;
+    }
+
+    .pg-price-tag{
+      color:var(--danger);
+      font-size:13px;
+      margin-top:4px;
+      font-weight:900;
+      display:block;
+    }
+
+    .pg-qty{
+      width:70px;
+      min-width:70px;
+      height:46px;
+      text-align:center;
+      font-size:20px;
+      font-weight:900;
+      border:2px solid var(--blue);
+      border-radius:12px;
+      -webkit-appearance:none;
+      appearance:none;
+      background:#fff;
+      box-sizing:border-box;
+    }
+
+    .pg-qty.has-value{
+      background:#fff;
+      color:#333;
+      border-color:#3498db;
+    }
+
+    .pg-help{
+      font-size:14px;
+      color:#666;
+      margin-top:16px;
+      line-height:1.7;
+    }
+
+    .pg-footer-bar{
+      position:fixed;
+      bottom:0;
+      left:0;
+      width:100%;
+      background:#fff;
+      padding:14px 12px 16px;
+      border-top:3px solid var(--blue);
+      text-align:center;
+      z-index:99999;
+      box-shadow:0 -3px 15px rgba(0,0,0,0.08);
+      box-sizing:border-box;
+    }
+
+    .pg-total-txt{
+      font-size:18px;
+      font-weight:900;
+      margin-bottom:10px;
+      color:#5f4b3b;
+    }
+
+    .pg-btn-line{
+      display:block;
+      background:var(--line);
+      color:#fff;
+      text-decoration:none;
+      padding:16px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:18px;
+      box-shadow:0 4px 0 #25a25a;
+    }
+
+    .pg-btn-line.disabled{
+      background:#cfcfcf;
+      box-shadow:none;
+      pointer-events:none;
+    }
+
+    .pg-loading{
+      color:var(--muted);
+      font-size:14px;
+      padding:10px 0;
+    }
+
+    @media (max-width: 480px){
+      h1{ font-size:25px; }
+      .pg-item-name{ font-size:15px; }
+      .pg-qty{
+        width:70px;
+        min-width:70px;
+        height:46px;
+        font-size:20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="pg-form">
+    <h1>ぺんぎんKITCHEN 🐧</h1>
+
+    <div class="pg-info-box">
+      🐧 事前予約でスムーズにお渡しできます<br>
+      💰 お支払いは当日キッチンカーでの現地決済です<br>
+      （現金・PayPayやクレジットカード等）
+    </div>
+
+    <div class="pg-card">
+      <span class="pg-title">■ お名前</span>
+      <input type="text" id="custName" class="pg-input-field" placeholder="例：ぺんぎん太郎" />
+    </div>
+
+    <div class="pg-card">
+      <span class="pg-title">■ 出店場所を選択</span>
+      <select id="custPlace" class="pg-input-field">
+        <option value="">場所を選択してください</option>
+      </select>
+      <div id="placeLoading" class="pg-loading">出店日程を読み込み中…</div>
+      <div id="placeStatusNote" class="pg-status"></div>
+      <button type="button" id="retryPlaceBtn" class="pg-mini-btn" style="display:none;">もう一度読み込む</button>
+
+      <div id="manualPlaceWrap" class="pg-manual-wrap">
+        <div class="pg-status pg-warn">※日程が読み込めない時だけ、ここに手入力できます</div>
+        <input type="text" id="custPlaceManual" class="pg-input-field" placeholder="例：3/18(水) そよら新金岡イオン 12-17時" />
+      </div>
+    </div>
+
+    <div class="pg-card">
+      <span class="pg-title">■ お受け取り希望時間</span>
+      <select id="custTime" class="pg-input-field">
+        <option value="">時間を選択してください</option>
+      </select>
+    </div>
+
+    <div id="menuImageArea"></div>
+
+    <div id="menuArea">
+      <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
+    </div>
+
+    <div class="pg-help">
+      ※細かいご要望（トッピング等）はLINEでお気軽にお知らせください🐧<br>
+      ※売り切れ商品は表示されない場合があります。
+    </div>
+  </div>
+
+  <div class="pg-footer-bar">
+    <div class="pg-total-txt">
+      🐧お会計ペン：<span id="total-val" style="color:#e74c3c; font-size:26px;">0</span>円
+    </div>
+    <a href="javascript:void(0)" id="sendLineBtn" class="pg-btn-line disabled">
+      お名前・場所・時間・メニューを入力してね
+    </a>
+  </div>
+
+<script>
+/* =========================
+   ✅ ここだけ書き換えゾーン
+========================= */
+const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
+const SHEET_NAME = "menu";
+const ICAL_PROXY_URL = "https://script.google.com/macros/s/AKfycbxPngyHgUoHPTUGYgkL84gcZyHt5lfCpa3LAFApBYoQUR2HgBkuvDfdpOiEirVpAKDR/exec";
+const SHOW_DAYS = 45;
+/* ========================= */
+
+const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
+const PLACE_FETCH_TIMEOUT_MS = 8000;
+const PLACE_CACHE_KEY = "pg_place_cache_v2";
+const PLACE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+
+function safeText(v){ return (v ?? "").toString().trim(); }
+
+function weekdayJa(dateObj){
+  const w = ["日","月","火","水","木","金","土"];
+  return w[dateObj.getDay()];
+}
+
+function formatDateMdJaFromISO(iso){
+  const y = Number(iso.slice(0,4));
+  const m = Number(iso.slice(5,7)) - 1;
+  const d = Number(iso.slice(8,10));
+  const dt = new Date(y, m, d);
+  return `${m+1}/${d}(${weekdayJa(dt)})`;
+}
+
+function buildTimeOptions(){
+  const sel = document.getElementById("custTime");
+  const times = [
+    "11:30ごろ","12:00ごろ","12:30ごろ","13:00ごろ","13:30ごろ",
+    "14:00ごろ","14:30ごろ","15:00ごろ","15:30ごろ","16:00ごろ"
+  ];
+  for (const t of times){
+    const o = document.createElement("option");
+    o.value = t;
+    o.textContent = t;
+    sel.appendChild(o);
+  }
+}
+
+function parseGviz(text){
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  const json = text.substring(start, end + 1);
+  return JSON.parse(json);
+}
+
+function gvizUrl() {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+}
+
+function isActive(v){
+  const s = safeText(v).toLowerCase();
+  return (v === true || s === "true" || s === "o" || s === "○" || s === "1" || s === "yes" || s === "y" || s === "✔");
+}
+
+function isHeaderCategory(cat){
+  return safeText(cat).toLowerCase() === "header";
+}
+
+function renderHeaderImages(headerItems){
+  const imageArea = document.getElementById("menuImageArea");
+  imageArea.innerHTML = "";
+
+  const validImages = headerItems.filter(item => safeText(item.image));
+  if (!validImages.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "pg-menu-image-wrap";
+
+  for (const item of validImages){
+    const img = document.createElement("img");
+    img.className = "pg-menu-image";
+    img.src = item.image;
+    img.alt = item.name || "メニュー画像";
+    img.loading = "lazy";
+    wrap.appendChild(img);
+  }
+
+  imageArea.appendChild(wrap);
+}
+
+async function loadMenuFromSheet(){
+  const menuArea = document.getElementById("menuArea");
+  const menuLoading = document.getElementById("menuLoading");
+
+  try{
+    const res = await fetch(gvizUrl(), { cache: "no-store" });
+    const txt = await res.text();
+    const data = parseGviz(txt);
+
+    const cols = data.table.cols.map(c => (c.label || "").trim());
+    const rows = data.table.rows;
+
+    const idx = (name) => cols.findIndex(c => c === name);
+
+    const iName  = idx("name");
+    const iPrice = idx("price");
+    const iAct   = idx("active");
+    const iSort  = idx("sort");
+    const iCat   = idx("category");
+    const iNote  = idx("note");
+    const iBadge = idx("badge");
+    const iImage = idx("image");
+
+    const items = rows.map(r => {
+      const cells = r.c.map(x => x ? (x.v ?? "") : "");
+      return {
+        name: safeText(cells[iName]),
+        price: Number(cells[iPrice] || 0),
+        active: isActive(cells[iAct]),
+        sort: Number(cells[iSort] || 9999),
+        category: safeText(cells[iCat]) || "メニュー",
+        note: safeText(cells[iNote]),
+        badge: safeText(cells[iBadge]),
+        image: safeText(cells[iImage])
+      };
+    }).filter(x => x.name && x.price >= 0);
+
+    items.sort((a,b) => a.sort - b.sort);
+
+    const headerItems = items.filter(it => isHeaderCategory(it.category));
+    renderHeaderImages(headerItems);
+
+    const visibleMenuItems = items.filter(it => {
+      if (isHeaderCategory(it.category)) return false;
+      if (!it.active) return false;
+      if (!it.name) return false;
+      if (!it.price) return false;
+      return true;
+    });
+
+    const order = [];
+    const byCat = new Map();
+
+    for (const it of visibleMenuItems){
+      const cat = it.category || "メニュー";
+      if (!byCat.has(cat)){
+        byCat.set(cat, []);
+        order.push(cat);
+      }
+      byCat.get(cat).push(it);
+    }
+
+    menuArea.innerHTML = "";
+
+    for (const cat of order){
+      const list = byCat.get(cat);
+      if (!list || !list.length) continue;
+
+      const catTag = document.createElement("div");
+      catTag.className = "pg-cat-tag";
+      catTag.textContent = `✨ ${cat}`;
+      menuArea.appendChild(catTag);
+
+      for (const it of list){
+        const row = document.createElement("div");
+        row.className = "pg-row";
+
+        const nameBox = document.createElement("div");
+        nameBox.className = "pg-name-box";
+
+        if (safeText(it.badge)){
+          const badge = document.createElement("div");
+          badge.className = "pg-badge";
+          badge.textContent = it.badge;
+          nameBox.appendChild(badge);
+        }
+
+        const name = document.createElement("div");
+        name.className = "pg-item-name";
+        name.textContent = it.name;
+        nameBox.appendChild(name);
+
+        const price = document.createElement("span");
+        price.className = "pg-price-tag";
+        price.textContent = `${it.price}円`;
+        nameBox.appendChild(price);
+
+        const qty = document.createElement("input");
+        qty.className = "pg-qty";
+        qty.type = "number";
+        qty.min = "0";
+        qty.max = "20";
+        qty.value = "0";
+        qty.inputMode = "numeric";
+        qty.dataset.name = it.name;
+        qty.dataset.price = String(it.price);
+
+        qty.addEventListener("input", () => {
+          let val = parseInt(qty.value, 10);
+          if (isNaN(val) || val < 0) val = 0;
+          if (val > 20) val = 20;
+          qty.value = String(val);
+
+          if (val > 0){
+            qty.classList.add("has-value");
+          }else{
+            qty.classList.remove("has-value");
+          }
+
+          updateTotalAndButton();
+        });
+
+        row.appendChild(nameBox);
+        row.appendChild(qty);
+        menuArea.appendChild(row);
+      }
+    }
+
+    updateTotalAndButton();
+
+  }catch(e){
+    menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>（スプレッドシートの公開設定を確認してください）</div>`;
+  }finally{
+    if (menuLoading) menuLoading.remove();
+  }
+}
+
+function setPlaceStatusNote(text){
+  const el = document.getElementById("placeStatusNote");
+  if (!el) return;
+  el.textContent = text || "";
+}
+
+function setManualMode(enable){
+  const manualWrap = document.getElementById("manualPlaceWrap");
+  const retryBtn = document.getElementById("retryPlaceBtn");
+  if (manualWrap) manualWrap.style.display = enable ? "block" : "none";
+  if (retryBtn) retryBtn.style.display = enable ? "inline-block" : "none";
+}
+
+function savePlaceCache(items){
+  try{
+    const payload = { ts: Date.now(), items };
+    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify(payload));
+  }catch(_){}
+}
+
+function loadPlaceCache(){
+  try{
+    const raw = localStorage.getItem(PLACE_CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj?.ts || !Array.isArray(obj.items)) return null;
+    if (Date.now() - obj.ts > PLACE_CACHE_TTL_MS) return null;
+    return obj.items;
+  }catch(_){ return null; }
+}
+
+async function fetchWithTimeout(url, ms){
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), ms);
+  try{
+    const res = await fetch(url, { cache:"no-store", signal: controller.signal });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  }finally{
+    clearTimeout(t);
+  }
+}
+
+function fillPlaceSelect(items){
+  const sel = document.getElementById("custPlace");
+  sel.innerHTML = `<option value="">場所を選択してください</option>`;
+  for (const it of items){
+    const label = `${formatDateMdJaFromISO(it.date)} ${it.title}`;
+    const o = document.createElement("option");
+    o.value = label;
+    o.textContent = label;
+    sel.appendChild(o);
+  }
+}
+
+async function loadPlaces(){
+  const loading = document.getElementById("placeLoading");
+  try{
+    setPlaceStatusNote("");
+    setManualMode(false);
+
+    const cached = loadPlaceCache();
+    if (cached && cached.length){
+      fillPlaceSelect(cached);
+      if (loading) loading.textContent = "出店日程（キャッシュ表示）";
+    }
+
+    const data = await fetchWithTimeout(ICAL_PROXY_URL, PLACE_FETCH_TIMEOUT_MS);
+    const items = Array.isArray(data.items) ? data.items : [];
+    if (!items.length) throw new Error("no items");
+
+    fillPlaceSelect(items);
+    savePlaceCache(items);
+    if (loading) loading.textContent = `出店日程：最新を表示中（〜${SHOW_DAYS}日）`;
+
+  }catch(e){
+    if (loading) loading.textContent = "出店日程の読み込みに失敗しました";
+    setPlaceStatusNote("読み込みに失敗したので、手入力に切り替えできます");
+    setManualMode(true);
+  }
+}
+
+function getPlaceValue(){
+  const manualWrap = document.getElementById("manualPlaceWrap");
+  if (manualWrap && manualWrap.style.display !== "none"){
+    return safeText(document.getElementById("custPlaceManual").value);
+  }
+  return safeText(document.getElementById("custPlace").value);
+}
+
+function collectOrderLines(){
+  const lines = [];
+  const qtyInputs = document.querySelectorAll(".pg-qty");
+  for (const el of qtyInputs){
+    const q = Number(el.value || 0);
+    if (q > 0){
+      lines.push(`${el.dataset.name} ×${q}`);
+    }
+  }
+  return lines;
+}
+
+function getTotal(){
+  let total = 0;
+  const qtyInputs = document.querySelectorAll(".pg-qty");
+  for (const el of qtyInputs){
+    const q = Number(el.value || 0);
+    const p = Number(el.dataset.price || 0);
+    total += q * p;
+  }
+  return total;
+}
+
+function getTotalQty(){
+  let totalQty = 0;
+  const qtyInputs = document.querySelectorAll(".pg-qty");
+  for (const el of qtyInputs){
+    totalQty += Number(el.value || 0);
+  }
+  return totalQty;
+}
+
+function updateTotalAndButton(){
+  const name = safeText(document.getElementById("custName").value);
+  const place = getPlaceValue();
+  const time = safeText(document.getElementById("custTime").value);
+  const total = getTotal();
+  const hasMenu = collectOrderLines().length > 0;
+
+  document.getElementById("total-val").textContent = String(total);
+
+  const btn = document.getElementById("sendLineBtn");
+  if (name && place && time && hasMenu){
+    btn.classList.remove("disabled");
+    btn.textContent = "LINEで予約内容を送る";
+  }else{
+    btn.classList.add("disabled");
+    btn.textContent = "お名前・場所・時間・メニューを入力してね";
+  }
+}
+
+function buildLineMessage(){
+  const name = safeText(document.getElementById("custName").value);
+  const place = getPlaceValue();
+  const time = safeText(document.getElementById("custTime").value);
+  const lines = collectOrderLines();
+  const total = getTotal();
+  const totalQty = getTotalQty();
+
+  return `【${time}】
+
+${lines.join("\n")}
+
+ーーーーーーーーー
+${name}
+合計：${totalQty}枚 / ${total}円
+${place}`;
+}
+
+function onSendLine(){
+  const btn = document.getElementById("sendLineBtn");
+  if (btn.classList.contains("disabled")) return;
+  const msg = buildLineMessage();
+  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
+  location.href = url;
+}
+
+function init(){
+  buildTimeOptions();
+
+  document.getElementById("custName").addEventListener("input", updateTotalAndButton);
+  document.getElementById("custPlace").addEventListener("change", updateTotalAndButton);
+  document.getElementById("custPlaceManual").addEventListener("input", updateTotalAndButton);
+  document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
+  document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
+
+  document.getElementById("retryPlaceBtn").addEventListener("click", async () => {
+    document.getElementById("placeLoading").textContent = "出店日程を再読み込み中…";
+    await loadPlaces();
+    updateTotalAndButton();
+  });
+
+  loadPlaces();
+  loadMenuFromSheet();
+}
+init();
+</script>
+</body>
+</html>
+
