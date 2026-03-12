@@ -629,11 +629,13 @@ async function loadPlaces(){
 }
 
 function getPlaceValue(){
-  const manualWrap = document.getElementById("manualPlaceWrap");
-  if (manualWrap && manualWrap.style.display !== "none"){
-    return safeText(document.getElementById("custPlaceManual").value);
-  }
-  return safeText(document.getElementById("custPlace").value);
+  const manual = safeText(document.getElementById("custPlaceManual").value);
+  const select = safeText(document.getElementById("custPlace").value);
+
+  if (manual) return manual;
+  if (select) return select;
+
+  return "";
 }
 
 function collectOrderLines(){
