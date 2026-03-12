@@ -18,6 +18,9 @@
       --badge-bg:#fff3cd;
       --badge-text:#8a5a00;
       --title-brown:#5f4b3b;
+      --popular-bg:#fff3f4;
+      --popular-border:#f3c7cc;
+      --popular-text:#b94b5a;
     }
 
     body{
@@ -125,14 +128,25 @@
     }
 
     .pg-cat-tag{
-      background:#34495e;
-      color:#fff;
       padding:10px 12px;
       border-radius:14px;
       margin:18px 0 10px;
       font-size:14px;
       font-weight:900;
       letter-spacing:0.2px;
+      border:1px solid;
+    }
+
+    .pg-popular-tag{
+      background:var(--popular-bg);
+      color:var(--popular-text);
+      border-color:var(--popular-border);
+    }
+
+    .pg-normal-tag{
+      background:#34495e;
+      color:#fff;
+      border-color:#34495e;
     }
 
     .pg-row{
@@ -387,6 +401,10 @@ function isHeaderCategory(cat){
   return safeText(cat).toLowerCase() === "header";
 }
 
+function isPopularBadge(badge){
+  return safeText(badge) === "🔥人気";
+}
+
 function renderHeaderImages(headerItems){
   const imageArea = document.getElementById("menuImageArea");
   imageArea.innerHTML = "";
@@ -409,6 +427,60 @@ function renderHeaderImages(headerItems){
   imageArea.appendChild(wrap);
 }
 
+function createMenuRow(it){
+  const row = document.createElement("div");
+  row.className = "pg-row";
+
+  const nameBox = document.createElement("div");
+  nameBox.className = "pg-name-box";
+
+  if (safeText(it.badge)){
+    const badge = document.createElement("div");
+    badge.className = "pg-badge";
+    badge.textContent = it.badge;
+    nameBox.appendChild(badge);
+  }
+
+  const name = document.createElement("div");
+  name.className = "pg-item-name";
+  name.textContent = it.name;
+  nameBox.appendChild(name);
+
+  const price = document.createElement("span");
+  price.className = "pg-price-tag";
+  price.textContent = `${it.price}円`;
+  nameBox.appendChild(price);
+
+  const qty = document.createElement("input");
+  qty.className = "pg-qty";
+  qty.type = "number";
+  qty.min = "0";
+  qty.max = "20";
+  qty.value = "0";
+  qty.inputMode = "numeric";
+  qty.dataset.name = it.name;
+  qty.dataset.price = String(it.price);
+
+  qty.addEventListener("input", () => {
+    let val = parseInt(qty.value, 10);
+    if (isNaN(val) || val < 0) val = 0;
+    if (val > 20) val = 20;
+    qty.value = String(val);
+
+    if (val > 0){
+      qty.classList.add("has-value");
+    }else{
+      qty.classList.remove("has-value");
+    }
+
+    updateTotalAndButton();
+  });
+
+  row.appendChild(nameBox);
+  row.appendChild(qty);
+  return row;
+}
+
 async function loadMenuFromSheet(){
   const menuArea = document.getElementById("menuArea");
   const menuLoading = document.getElementById("menuLoading");
@@ -420,7 +492,6 @@ async function loadMenuFromSheet(){
 
     const cols = data.table.cols.map(c => (c.label || "").trim());
     const rows = data.table.rows;
-
     const idx = (name) => cols.findIndex(c => c === name);
 
     const iName  = idx("name");
@@ -446,12 +517,7 @@ async function loadMenuFromSheet(){
       };
     }).filter(x => x.name && x.price >= 0);
 
-   items.sort((a,b) => {
-  const ap = a.badge?.includes("人気") ? 0 : 1;
-  const bp = b.badge?.includes("人気") ? 0 : 1;
-  if (ap !== bp) return ap - bp;
-  return a.sort - b.sort;
-});
+    items.sort((a,b) => a.sort - b.sort);
 
     const headerItems = items.filter(it => isHeaderCategory(it.category));
     renderHeaderImages(headerItems);
@@ -464,10 +530,13 @@ async function loadMenuFromSheet(){
       return true;
     });
 
+    const popularItems = visibleMenuItems.filter(it => isPopularBadge(it.badge));
+    const normalItems  = visibleMenuItems.filter(it => !isPopularBadge(it.badge));
+
     const order = [];
     const byCat = new Map();
 
-    for (const it of visibleMenuItems){
+    for (const it of normalItems){
       const cat = it.category || "メニュー";
       if (!byCat.has(cat)){
         byCat.set(cat, []);
@@ -478,67 +547,28 @@ async function loadMenuFromSheet(){
 
     menuArea.innerHTML = "";
 
+    if (popularItems.length){
+      const popularTag = document.createElement("div");
+      popularTag.className = "pg-cat-tag pg-popular-tag";
+      popularTag.textContent = "🔥人気メニュー";
+      menuArea.appendChild(popularTag);
+
+      for (const it of popularItems){
+        menuArea.appendChild(createMenuRow(it));
+      }
+    }
+
     for (const cat of order){
       const list = byCat.get(cat);
       if (!list || !list.length) continue;
 
       const catTag = document.createElement("div");
-      catTag.className = "pg-cat-tag";
+      catTag.className = "pg-cat-tag pg-normal-tag";
       catTag.textContent = `✨ ${cat}`;
       menuArea.appendChild(catTag);
 
       for (const it of list){
-        const row = document.createElement("div");
-        row.className = "pg-row";
-
-        const nameBox = document.createElement("div");
-        nameBox.className = "pg-name-box";
-
-        if (safeText(it.badge)){
-          const badge = document.createElement("div");
-          badge.className = "pg-badge";
-          badge.textContent = it.badge;
-          nameBox.appendChild(badge);
-        }
-
-        const name = document.createElement("div");
-        name.className = "pg-item-name";
-        name.textContent = it.name;
-        nameBox.appendChild(name);
-
-        const price = document.createElement("span");
-        price.className = "pg-price-tag";
-        price.textContent = `${it.price}円`;
-        nameBox.appendChild(price);
-
-        const qty = document.createElement("input");
-        qty.className = "pg-qty";
-        qty.type = "number";
-        qty.min = "0";
-        qty.max = "20";
-        qty.value = "0";
-        qty.inputMode = "numeric";
-        qty.dataset.name = it.name;
-        qty.dataset.price = String(it.price);
-
-        qty.addEventListener("input", () => {
-          let val = parseInt(qty.value, 10);
-          if (isNaN(val) || val < 0) val = 0;
-          if (val > 20) val = 20;
-          qty.value = String(val);
-
-          if (val > 0){
-            qty.classList.add("has-value");
-          }else{
-            qty.classList.remove("has-value");
-          }
-
-          updateTotalAndButton();
-        });
-
-        row.appendChild(nameBox);
-        row.appendChild(qty);
-        menuArea.appendChild(row);
+        menuArea.appendChild(createMenuRow(it));
       }
     }
 
@@ -634,12 +664,11 @@ async function loadPlaces(){
 }
 
 function getPlaceValue(){
-  const manual = safeText(document.getElementById("custPlaceManual").value);
-  const select = safeText(document.getElementById("custPlace").value);
+  const selectVal = safeText(document.getElementById("custPlace").value);
+  const manualVal = safeText(document.getElementById("custPlaceManual").value);
 
-  if (manual) return manual;
-  if (select) return select;
-
+  if (selectVal) return selectVal;
+  if (manualVal) return manualVal;
   return "";
 }
 
@@ -742,4 +771,3 @@ init();
 </script>
 </body>
 </html>
-
