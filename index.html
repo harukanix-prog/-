@@ -314,6 +314,7 @@
       <select id="custTime" class="pg-input-field">
         <option value="">時間を選択してください</option>
       </select>
+      <div id="timeStatusNote" class="pg-status">営業時間を読み込み中…</div>
     </div>
 
     <div id="menuImageArea"></div>
@@ -351,6 +352,8 @@ const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 const PLACE_FETCH_TIMEOUT_MS = 8000;
 const PLACE_CACHE_KEY = "pg_place_cache_v2";
 const PLACE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+const FALLBACK_TIME_RANGE = "11:30〜17:00";
+const TIME_STEP_MINUTES = 15;
 
 function safeText(v){ return (v ?? "").toString().trim(); }
 
@@ -367,18 +370,72 @@ function formatDateMdJaFromISO(iso){
   return `${m+1}/${d}(${weekdayJa(dt)})`;
 }
 
-function buildTimeOptions(){
+function setTimeStatusNote(text){
+  const el = document.getElementById("timeStatusNote");
+  if (!el) return;
+  el.textContent = text || "";
+}
+
+function parseTimeRange(str){
+  const raw = safeText(str);
+  if (!raw) return null;
+
+  const matches = raw.match(/\d{1,2}:\d{2}/g);
+  if (!matches || matches.length < 2) return null;
+
+  return {
+    start: matches[0],
+    end: matches[1]
+  };
+}
+
+function timeToMinutes(t){
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(min){
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+}
+
+function buildTimesFromRange(timeRange, step = 15){
+  const parsed = parseTimeRange(timeRange);
+  if (!parsed) return [];
+
+  const startMin = timeToMinutes(parsed.start);
+  const endMin = timeToMinutes(parsed.end);
+
+  if (isNaN(startMin) || isNaN(endMin) || startMin > endMin) return [];
+
+  const times = [];
+  for (let t = startMin; t <= endMin; t += step){
+    times.push(minutesToTime(t));
+  }
+  return times;
+}
+
+function buildTimeOptions(timeRange){
   const sel = document.getElementById("custTime");
-  const times = [
-    "11:30ごろ","12:00ごろ","12:30ごろ","13:00ごろ","13:30ごろ",
-    "14:00ごろ","14:30ごろ","15:00ごろ","15:30ごろ","16:00ごろ"
-  ];
+  sel.innerHTML = '<option value="">時間を選択してください</option>';
+
+  let useRange = safeText(timeRange);
+  let times = buildTimesFromRange(useRange, TIME_STEP_MINUTES);
+
+  if (!times.length){
+    useRange = FALLBACK_TIME_RANGE;
+    times = buildTimesFromRange(useRange, TIME_STEP_MINUTES);
+  }
+
   for (const t of times){
     const o = document.createElement("option");
     o.value = t;
     o.textContent = t;
     sel.appendChild(o);
   }
+
+  setTimeStatusNote(`営業時間目安：${useRange}`);
 }
 
 function parseGviz(text){
@@ -403,6 +460,10 @@ function isHeaderCategory(cat){
 
 function isPopularBadge(badge){
   return safeText(badge) === "🔥人気";
+}
+
+function isInfoHoursCategory(cat){
+  return safeText(cat).toLowerCase() === "info_hours";
 }
 
 function renderHeaderImages(headerItems){
@@ -515,15 +576,20 @@ async function loadMenuFromSheet(){
         badge: safeText(cells[iBadge]),
         image: safeText(cells[iImage])
       };
-    }).filter(x => x.name && x.price >= 0);
+    }).filter(x => x.name || isHeaderCategory(x.category) || isInfoHoursCategory(x.category));
 
     items.sort((a,b) => a.sort - b.sort);
+
+    const infoHoursItem = items.find(it => isInfoHoursCategory(it.category));
+    const hoursText = safeText(infoHoursItem?.name) || FALLBACK_TIME_RANGE;
+    buildTimeOptions(hoursText);
 
     const headerItems = items.filter(it => isHeaderCategory(it.category));
     renderHeaderImages(headerItems);
 
     const visibleMenuItems = items.filter(it => {
       if (isHeaderCategory(it.category)) return false;
+      if (isInfoHoursCategory(it.category)) return false;
       if (!it.active) return false;
       if (!it.name) return false;
       if (!it.price) return false;
@@ -575,6 +641,7 @@ async function loadMenuFromSheet(){
     updateTotalAndButton();
 
   }catch(e){
+    buildTimeOptions(FALLBACK_TIME_RANGE);
     menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>（スプレッドシートの公開設定を確認してください）</div>`;
   }finally{
     if (menuLoading) menuLoading.remove();
@@ -714,60 +781,4 @@ function updateTotalAndButton(){
   document.getElementById("total-val").textContent = String(total);
 
   const btn = document.getElementById("sendLineBtn");
-  if (name && place && time && hasMenu){
-    btn.classList.remove("disabled");
-    btn.textContent = "LINEで予約内容を送る";
-  }else{
-    btn.classList.add("disabled");
-    btn.textContent = "お名前・場所・時間・メニューを入力してね";
-  }
-}
-
-function buildLineMessage(){
-  const name = safeText(document.getElementById("custName").value);
-  const place = getPlaceValue();
-  const time = safeText(document.getElementById("custTime").value);
-  const lines = collectOrderLines();
-  const total = getTotal();
-  const totalQty = getTotalQty();
-
-  return `【${time}】
-
-${lines.join("\n")}
-
-ーーーーーーーーー
-${name}
-合計：${totalQty}枚 / ${total}円
-${place}`;
-}
-
-function onSendLine(){
-  const btn = document.getElementById("sendLineBtn");
-  if (btn.classList.contains("disabled")) return;
-  const msg = buildLineMessage();
-  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
-  location.href = url;
-}
-
-function init(){
-  buildTimeOptions();
-
-  document.getElementById("custName").addEventListener("input", updateTotalAndButton);
-  document.getElementById("custPlace").addEventListener("change", updateTotalAndButton);
-  document.getElementById("custPlaceManual").addEventListener("input", updateTotalAndButton);
-  document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
-  document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
-
-  document.getElementById("retryPlaceBtn").addEventListener("click", async () => {
-    document.getElementById("placeLoading").textContent = "出店日程を再読み込み中…";
-    await loadPlaces();
-    updateTotalAndButton();
-  });
-
-  loadPlaces();
-  loadMenuFromSheet();
-}
-init();
-</script>
-</body>
-</html>
+  if (name && place && time && hasMen
