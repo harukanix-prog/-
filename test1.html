@@ -34,7 +34,7 @@
     #pg-form{
       max-width:720px;
       margin:0 auto;
-      padding:8px 12px 185px;
+      padding:6px 12px 185px;
       box-sizing:border-box;
     }
 
@@ -231,6 +231,36 @@
       border-color:#3498db;
     }
 
+    .pg-order-summary{
+      display:none;
+      background:#f7f7f7;
+      border:1px solid #e6e6e6;
+      border-radius:12px;
+      padding:10px 12px;
+      margin:12px 0 8px;
+    }
+
+    .pg-order-summary-title{
+      font-size:12px;
+      font-weight:900;
+      color:#666;
+      margin-bottom:6px;
+    }
+
+    .pg-order-summary-lines{
+      font-size:12px;
+      line-height:1.5;
+      color:#444;
+      white-space:pre-line;
+    }
+
+    .pg-order-summary-total{
+      margin-top:6px;
+      font-size:16px;
+      font-weight:900;
+      color:#5f4b3b;
+    }
+
     .pg-help{
       font-size:12px;
       color:#666;
@@ -356,6 +386,19 @@
       .pg-help{
         font-size:12px;
       }
+
+      .pg-order-summary{
+        padding:10px 11px;
+      }
+
+      .pg-order-summary-title,
+      .pg-order-summary-lines{
+        font-size:12px;
+      }
+
+      .pg-order-summary-total{
+        font-size:16px;
+      }
     }
   </style>
 </head>
@@ -401,6 +444,12 @@
 
     <div id="menuArea">
       <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
+    </div>
+
+    <div id="orderSummary" class="pg-order-summary">
+      <div class="pg-order-summary-title">ご注文内容</div>
+      <div id="orderSummaryLines" class="pg-order-summary-lines"></div>
+      <div id="orderSummaryTotal" class="pg-order-summary-total"></div>
     </div>
 
     <div class="pg-help">
@@ -853,6 +902,26 @@ function getTotalQty(){
   return totalQty;
 }
 
+function updateOrderSummary(){
+  const summary = document.getElementById("orderSummary");
+  const linesEl = document.getElementById("orderSummaryLines");
+  const totalEl = document.getElementById("orderSummaryTotal");
+
+  const lines = collectOrderLines();
+  const total = getTotal();
+
+  if (!lines.length){
+    summary.style.display = "none";
+    linesEl.textContent = "";
+    totalEl.textContent = "";
+    return;
+  }
+
+  summary.style.display = "block";
+  linesEl.textContent = lines.join("\n");
+  totalEl.textContent = "合計 " + total + "円";
+}
+
 function updateTotalAndButton(){
   const name = safeText(document.getElementById("custName").value);
   const place = getPlaceValue();
@@ -861,6 +930,7 @@ function updateTotalAndButton(){
   const hasMenu = collectOrderLines().length > 0;
 
   document.getElementById("total-val").textContent = String(total);
+  updateOrderSummary();
 
   const btn = document.getElementById("sendLineBtn");
   if (name && place && time && hasMenu){
@@ -899,6 +969,7 @@ function onSendLine(){
 
 function init(){
   buildTimeOptions(FALLBACK_TIME_RANGE);
+  updateOrderSummary();
 
   document.getElementById("custName").addEventListener("input", updateTotalAndButton);
   document.getElementById("custPlace").addEventListener("change", updateTotalAndButton);
