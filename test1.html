@@ -773,4 +773,58 @@ function updateTotalAndButton(){
   const btn = document.getElementById("sendLineBtn");
   if (name && place && time && hasMenu){
     btn.classList.remove("disabled");
-    btn.textContent = "
+    btn.textContent = "LINEで予約内容を送る";
+  }else{
+    btn.classList.add("disabled");
+    btn.textContent = "お名前・場所・時間・メニューを入力してね";
+  }
+}
+
+function buildLineMessage(){
+  const name = safeText(document.getElementById("custName").value);
+  const place = getPlaceValue();
+  const time = safeText(document.getElementById("custTime").value);
+  const lines = collectOrderLines();
+  const total = getTotal();
+  const totalQty = getTotalQty();
+
+  return `【${time}】
+
+${lines.join("\n")}
+
+ーーーーーーーーー
+${name}
+合計：${totalQty}枚 / ${total}円
+${place}`;
+}
+
+function onSendLine(){
+  const btn = document.getElementById("sendLineBtn");
+  if (btn.classList.contains("disabled")) return;
+  const msg = buildLineMessage();
+  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
+  location.href = url;
+}
+
+function init(){
+  buildTimeOptions(FALLBACK_TIME_RANGE);
+
+  document.getElementById("custName").addEventListener("input", updateTotalAndButton);
+  document.getElementById("custPlace").addEventListener("change", updateTotalAndButton);
+  document.getElementById("custPlaceManual").addEventListener("input", updateTotalAndButton);
+  document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
+  document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
+
+  document.getElementById("retryPlaceBtn").addEventListener("click", async () => {
+    document.getElementById("placeLoading").textContent = "出店日程を再読み込み中…";
+    await loadPlaces();
+    updateTotalAndButton();
+  });
+
+  loadPlaces();
+  loadMenuFromSheet();
+}
+init();
+</script>
+</body>
+</html>
