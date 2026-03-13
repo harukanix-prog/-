@@ -34,14 +34,14 @@
     #pg-form{
       max-width:720px;
       margin:0 auto;
-      padding:12px 12px 185px;
+      padding:6px 12px 185px;
       box-sizing:border-box;
     }
 
     h1{
       text-align:center;
       color:var(--title-brown);
-      margin:10px 0 16px;
+      margin:8px 0 12px;
       font-size:28px;
       font-weight:900;
       line-height:1.2;
@@ -53,44 +53,45 @@
     .pg-info-box{
       background:#fff8e8;
       border:2px solid var(--gold);
-      padding:12px 14px;
+      padding:8px 11px;
       border-radius:16px;
-      margin:12px 0 16px 0;
-      font-size:14px;
-      line-height:1.75;
+      margin:8px 0 10px 0;
+      font-size:12px;
+      line-height:1.55;
     }
 
     .pg-card{
       background:var(--card);
       border:1px solid var(--border);
-      padding:14px;
+      padding:10px;
       border-radius:16px;
-      margin-bottom:14px;
+      margin-bottom:10px;
       box-shadow:0 2px 8px rgba(0,0,0,0.05);
     }
 
     .pg-title{
       font-weight:900;
-      font-size:15px;
-      margin-bottom:8px;
+      font-size:13px;
+      margin-bottom:6px;
       display:block;
     }
 
     .pg-input-field{
       width:100%;
-      padding:14px 12px;
+      padding:10px 12px;
       border:1px solid #ccc;
       border-radius:10px;
-      font-size:18px;
+      font-size:17px;
       box-sizing:border-box;
       background:#fff;
+      min-height:46px;
     }
 
     .pg-status{
       color:var(--muted);
-      font-size:13px;
-      padding-top:8px;
-      line-height:1.4;
+      font-size:12px;
+      padding-top:6px;
+      line-height:1.3;
     }
 
     .pg-warn{
@@ -99,39 +100,45 @@
     }
 
     .pg-manual-wrap{
-      margin-top:10px;
+      margin-top:8px;
       display:none;
     }
 
     .pg-mini-btn{
-      margin-top:10px;
-      display:inline-block;
-      border:1px solid #ddd;
+      margin-top:8px;
+      display:block;
+      width:100%;
+      border:1px solid #ccc;
       background:#fff;
       border-radius:10px;
       padding:10px 12px;
       font-weight:900;
+      font-size:17px;
+      line-height:1.2;
+      min-height:46px;
       cursor:pointer;
+      box-sizing:border-box;
+      text-align:center;
     }
 
     .pg-menu-image-wrap{
-      margin-bottom:18px;
+      margin-bottom:12px;
     }
 
     .pg-menu-image{
       width:100%;
       display:block;
       border-radius:12px;
-      margin-bottom:16px;
+      margin-bottom:12px;
       background:#fff;
       border:1px solid #eee;
     }
 
     .pg-cat-tag{
-      padding:10px 12px;
+      padding:8px 10px;
       border-radius:14px;
-      margin:18px 0 10px;
-      font-size:14px;
+      margin:14px 0 8px;
+      font-size:13px;
       font-weight:900;
       letter-spacing:0.2px;
       border:1px solid;
@@ -152,59 +159,69 @@
     .pg-row{
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      padding:12px 10px;
+      gap:10px;
+      padding:6px 12px;
+      min-height:52px;
       border:1px solid #eee;
       background:#fff;
-      border-radius:14px;
-      margin-bottom:8px;
-      gap:10px;
+      border-radius:12px;
+      margin-bottom:5px;
+      box-sizing:border-box;
     }
 
     .pg-name-box{
-      flex:1;
+      flex:1 1 auto;
       min-width:0;
+      display:flex;
+      align-items:center;
+      gap:7px;
     }
 
     .pg-badge{
       display:inline-block;
       background:var(--badge-bg);
       color:var(--badge-text);
-      font-size:12px;
+      font-size:10px;
       font-weight:900;
       line-height:1;
-      padding:6px 8px;
+      padding:4px 6px;
       border-radius:999px;
-      margin-bottom:6px;
+      flex-shrink:0;
+      margin-right:2px;
     }
 
     .pg-item-name{
       font-weight:900;
-      font-size:17px;
-      line-height:1.3;
-      word-break:break-word;
+      font-size:15px;
+      line-height:1.25;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .pg-price-tag{
       color:var(--danger);
-      font-size:13px;
-      margin-top:4px;
+      font-size:14px;
       font-weight:900;
-      display:block;
+      margin-left:auto;
+      margin-right:2px;
+      flex-shrink:0;
+      white-space:nowrap;
     }
 
     .pg-qty{
-      width:70px;
-      min-width:70px;
-      height:46px;
+      width:64px;
+      min-width:64px;
+      height:34px;
       text-align:center;
-      font-size:20px;
+      font-size:18px;
       font-weight:900;
-      border:2px solid var(--blue);
-      border-radius:12px;
+      border:1px solid #d8d8d8;
+      border-radius:10px;
       -webkit-appearance:none;
       appearance:none;
-      background:#fff;
+      background:#f8f8f8;
+      color:#999;
       box-sizing:border-box;
     }
 
@@ -214,11 +231,41 @@
       border-color:#3498db;
     }
 
-    .pg-help{
-      font-size:14px;
+    .pg-order-summary{
+      display:none;
+      background:#f7f7f7;
+      border:1px solid #e6e6e6;
+      border-radius:12px;
+      padding:10px 12px;
+      margin:12px 0 8px;
+    }
+
+    .pg-order-summary-title{
+      font-size:12px;
+      font-weight:900;
       color:#666;
-      margin-top:16px;
-      line-height:1.7;
+      margin-bottom:6px;
+    }
+
+    .pg-order-summary-lines{
+      font-size:12px;
+      line-height:1.5;
+      color:#444;
+      white-space:pre-line;
+    }
+
+    .pg-order-summary-total{
+      margin-top:6px;
+      font-size:16px;
+      font-weight:900;
+      color:#5f4b3b;
+    }
+
+    .pg-help{
+      font-size:12px;
+      color:#666;
+      margin-top:10px;
+      line-height:1.55;
     }
 
     .pg-footer-bar{
@@ -262,18 +309,95 @@
 
     .pg-loading{
       color:var(--muted);
-      font-size:14px;
-      padding:10px 0;
+      font-size:13px;
+      padding:8px 0 0;
+      line-height:1.3;
     }
 
     @media (max-width: 480px){
-      h1{ font-size:25px; }
-      .pg-item-name{ font-size:15px; }
+      h1{
+        font-size:25px;
+      }
+
+      #pg-form{
+        padding:6px 12px 185px;
+      }
+
+      .pg-card{
+        padding:10px;
+        margin-bottom:10px;
+      }
+
+      .pg-title{
+        font-size:13px;
+        margin-bottom:6px;
+      }
+
+      .pg-input-field{
+        padding:10px 12px;
+        min-height:46px;
+        font-size:17px;
+      }
+
+      .pg-mini-btn{
+        min-height:46px;
+        padding:10px 12px;
+        font-size:17px;
+      }
+
+      .pg-status{
+        font-size:12px;
+        padding-top:6px;
+      }
+
+      .pg-row{
+        padding:6px 10px;
+        min-height:50px;
+        gap:8px;
+      }
+
+      .pg-item-name{
+        font-size:14px;
+      }
+
+      .pg-price-tag{
+        font-size:13px;
+      }
+
       .pg-qty{
-        width:70px;
-        min-width:70px;
-        height:46px;
-        font-size:20px;
+        width:64px;
+        min-width:64px;
+        height:34px;
+        font-size:18px;
+      }
+
+      .pg-cat-tag{
+        padding:8px 10px;
+        margin:14px 0 8px;
+        font-size:13px;
+      }
+
+      .pg-info-box{
+        padding:8px 11px;
+        font-size:12px;
+        line-height:1.55;
+      }
+
+      .pg-help{
+        font-size:12px;
+      }
+
+      .pg-order-summary{
+        padding:10px 11px;
+      }
+
+      .pg-order-summary-title,
+      .pg-order-summary-lines{
+        font-size:12px;
+      }
+
+      .pg-order-summary-total{
+        font-size:16px;
       }
     }
   </style>
@@ -322,6 +446,12 @@
       <div id="menuLoading" class="pg-loading">メニューを読み込み中…</div>
     </div>
 
+    <div id="orderSummary" class="pg-order-summary">
+      <div class="pg-order-summary-title">ご注文内容</div>
+      <div id="orderSummaryLines" class="pg-order-summary-lines"></div>
+      <div id="orderSummaryTotal" class="pg-order-summary-total"></div>
+    </div>
+
     <div class="pg-help">
       ※細かいご要望（トッピング等）はLINEでお気軽にお知らせください🐧<br>
       ※売り切れ商品は表示されない場合があります。
@@ -338,14 +468,10 @@
   </div>
 
 <script>
-/* =========================
-   ✅ ここだけ書き換えゾーン
-========================= */
 const SPREADSHEET_ID = "1Mz9fN_RMrfDx_ZbYYfmAdgK_srKiW3DkqShJCk8K2sw";
 const SHEET_NAME = "menu";
 const ICAL_PROXY_URL = "https://script.google.com/macros/s/AKfycbxPngyHgUoHPTUGYgkL84gcZyHt5lfCpa3LAFApBYoQUR2HgBkuvDfdpOiEirVpAKDR/exec";
 const SHOW_DAYS = 45;
-/* ========================= */
 
 const LINE_SEND_URL_BASE = "https://line.me/R/msg/text/?";
 const PLACE_FETCH_TIMEOUT_MS = 8000;
@@ -354,7 +480,9 @@ const PLACE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const FALLBACK_TIME_RANGE = "11:30〜17:00";
 const TIME_STEP_MINUTES = 15;
 
-function safeText(v){ return (v ?? "").toString().trim(); }
+function safeText(v){
+  return (v == null ? "" : String(v)).trim();
+}
 
 function weekdayJa(dateObj){
   const w = ["日","月","火","水","木","金","土"];
@@ -371,20 +499,14 @@ function formatDateMdJaFromISO(iso){
 
 function parseTimeRange(str){
   const raw = safeText(str);
-  if (!raw) return null;
-
   const matches = raw.match(/\d{1,2}:\d{2}/g);
   if (!matches || matches.length < 2) return null;
-
-  return {
-    start: matches[0],
-    end: matches[1]
-  };
+  return { start: matches[0], end: matches[1] };
 }
 
 function timeToMinutes(t){
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
+  const parts = t.split(":");
+  return Number(parts[0]) * 60 + Number(parts[1]);
 }
 
 function minutesToTime(min){
@@ -393,17 +515,16 @@ function minutesToTime(min){
   return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
 }
 
-function buildTimesFromRange(timeRange, step = 15){
+function buildTimesFromRange(timeRange){
   const parsed = parseTimeRange(timeRange);
   if (!parsed) return [];
 
   const startMin = timeToMinutes(parsed.start);
   const endMin = timeToMinutes(parsed.end);
-
   if (isNaN(startMin) || isNaN(endMin) || startMin > endMin) return [];
 
   const times = [];
-  for (let t = startMin; t <= endMin; t += step){
+  for (let t = startMin; t <= endMin; t += TIME_STEP_MINUTES){
     times.push(minutesToTime(t));
   }
   return times;
@@ -413,18 +534,15 @@ function buildTimeOptions(timeRange){
   const sel = document.getElementById("custTime");
   sel.innerHTML = '<option value="">時間を選択してください</option>';
 
-  let useRange = safeText(timeRange);
-  let times = buildTimesFromRange(useRange, TIME_STEP_MINUTES);
-
+  let times = buildTimesFromRange(timeRange);
   if (!times.length){
-    useRange = FALLBACK_TIME_RANGE;
-    times = buildTimesFromRange(useRange, TIME_STEP_MINUTES);
+    times = buildTimesFromRange(FALLBACK_TIME_RANGE);
   }
 
-  for (const t of times){
+  for (let i = 0; i < times.length; i++){
     const o = document.createElement("option");
-    o.value = t;
-    o.textContent = t;
+    o.value = times[i];
+    o.textContent = times[i];
     sel.appendChild(o);
   }
 }
@@ -436,13 +554,13 @@ function parseGviz(text){
   return JSON.parse(json);
 }
 
-function gvizUrl() {
-  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+function gvizUrl(){
+  return "https://docs.google.com/spreadsheets/d/" + SPREADSHEET_ID + "/gviz/tq?tqx=out:json&sheet=" + encodeURIComponent(SHEET_NAME);
 }
 
 function isActive(v){
   const s = safeText(v).toLowerCase();
-  return (v === true || s === "true" || s === "o" || s === "○" || s === "1" || s === "yes" || s === "y" || s === "✔");
+  return v === true || s === "true" || s === "o" || s === "○" || s === "1" || s === "yes" || s === "y" || s === "✔";
 }
 
 function isHeaderCategory(cat){
@@ -461,13 +579,17 @@ function renderHeaderImages(headerItems){
   const imageArea = document.getElementById("menuImageArea");
   imageArea.innerHTML = "";
 
-  const validImages = headerItems.filter(item => safeText(item.image));
+  const validImages = headerItems.filter(function(item){
+    return safeText(item.image);
+  });
+
   if (!validImages.length) return;
 
   const wrap = document.createElement("div");
   wrap.className = "pg-menu-image-wrap";
 
-  for (const item of validImages){
+  for (let i = 0; i < validImages.length; i++){
+    const item = validImages[i];
     const img = document.createElement("img");
     img.className = "pg-menu-image";
     img.src = item.image;
@@ -500,8 +622,7 @@ function createMenuRow(it){
 
   const price = document.createElement("span");
   price.className = "pg-price-tag";
-  price.textContent = `${it.price}円`;
-  nameBox.appendChild(price);
+  price.textContent = it.price + "円";
 
   const qty = document.createElement("input");
   qty.className = "pg-qty";
@@ -513,7 +634,7 @@ function createMenuRow(it){
   qty.dataset.name = it.name;
   qty.dataset.price = String(it.price);
 
-  qty.addEventListener("input", () => {
+  qty.addEventListener("input", function(){
     let val = parseInt(qty.value, 10);
     if (isNaN(val) || val < 0) val = 0;
     if (val > 20) val = 20;
@@ -529,6 +650,7 @@ function createMenuRow(it){
   });
 
   row.appendChild(nameBox);
+  row.appendChild(price);
   row.appendChild(qty);
   return row;
 }
@@ -542,9 +664,14 @@ async function loadMenuFromSheet(){
     const txt = await res.text();
     const data = parseGviz(txt);
 
-    const cols = data.table.cols.map(c => (c.label || "").trim());
+    const cols = data.table.cols.map(function(c){
+      return (c.label || "").trim();
+    });
     const rows = data.table.rows;
-    const idx = (name) => cols.findIndex(c => c === name);
+
+    function idx(name){
+      return cols.findIndex(function(c){ return c === name; });
+    }
 
     const iName  = idx("name");
     const iPrice = idx("price");
@@ -555,8 +682,10 @@ async function loadMenuFromSheet(){
     const iBadge = idx("badge");
     const iImage = idx("image");
 
-    const items = rows.map(r => {
-      const cells = r.c.map(x => x ? (x.v ?? "") : "");
+    const items = rows.map(function(r){
+      const cells = r.c.map(function(x){
+        return x ? (x.v || "") : "";
+      });
       return {
         name: safeText(cells[iName]),
         price: Number(cells[iPrice] || 0),
@@ -567,18 +696,22 @@ async function loadMenuFromSheet(){
         badge: safeText(cells[iBadge]),
         image: safeText(cells[iImage])
       };
-    }).filter(x => x.name || isHeaderCategory(x.category) || isInfoHoursCategory(x.category));
+    });
 
-    items.sort((a,b) => a.sort - b.sort);
+    items.sort(function(a,b){ return a.sort - b.sort; });
 
-    const infoHoursItem = items.find(it => isInfoHoursCategory(it.category));
-    const hoursText = safeText(infoHoursItem?.name) || FALLBACK_TIME_RANGE;
+    const infoHoursItem = items.find(function(it){
+      return isInfoHoursCategory(it.category);
+    });
+    const hoursText = safeText(infoHoursItem ? infoHoursItem.name : "") || FALLBACK_TIME_RANGE;
     buildTimeOptions(hoursText);
 
-    const headerItems = items.filter(it => isHeaderCategory(it.category));
+    const headerItems = items.filter(function(it){
+      return isHeaderCategory(it.category);
+    });
     renderHeaderImages(headerItems);
 
-    const visibleMenuItems = items.filter(it => {
+    const visibleMenuItems = items.filter(function(it){
       if (isHeaderCategory(it.category)) return false;
       if (isInfoHoursCategory(it.category)) return false;
       if (!it.active) return false;
@@ -587,13 +720,18 @@ async function loadMenuFromSheet(){
       return true;
     });
 
-    const popularItems = visibleMenuItems.filter(it => isPopularBadge(it.badge));
-    const normalItems  = visibleMenuItems.filter(it => !isPopularBadge(it.badge));
+    const popularItems = visibleMenuItems.filter(function(it){
+      return isPopularBadge(it.badge);
+    });
+    const normalItems = visibleMenuItems.filter(function(it){
+      return !isPopularBadge(it.badge);
+    });
 
     const order = [];
     const byCat = new Map();
 
-    for (const it of normalItems){
+    for (let i = 0; i < normalItems.length; i++){
+      const it = normalItems[i];
       const cat = it.category || "メニュー";
       if (!byCat.has(cat)){
         byCat.set(cat, []);
@@ -610,29 +748,31 @@ async function loadMenuFromSheet(){
       popularTag.textContent = "🔥人気メニュー";
       menuArea.appendChild(popularTag);
 
-      for (const it of popularItems){
-        menuArea.appendChild(createMenuRow(it));
+      for (let i = 0; i < popularItems.length; i++){
+        menuArea.appendChild(createMenuRow(popularItems[i]));
       }
     }
 
-    for (const cat of order){
+    for (let i = 0; i < order.length; i++){
+      const cat = order[i];
       const list = byCat.get(cat);
       if (!list || !list.length) continue;
 
       const catTag = document.createElement("div");
       catTag.className = "pg-cat-tag pg-normal-tag";
-      catTag.textContent = `✨ ${cat}`;
+      catTag.textContent = "✨ " + cat;
       menuArea.appendChild(catTag);
 
-      for (const it of list){
-        menuArea.appendChild(createMenuRow(it));
+      for (let j = 0; j < list.length; j++){
+        menuArea.appendChild(createMenuRow(list[j]));
       }
     }
 
     updateTotalAndButton();
 
   }catch(e){
-    menuArea.innerHTML = `<div class="pg-loading">メニューの読み込みに失敗しました。<br>（スプレッドシートの公開設定を確認してください）</div>`;
+    buildTimeOptions(FALLBACK_TIME_RANGE);
+    menuArea.innerHTML = '<div class="pg-loading">メニューの読み込みに失敗しました。<br>（スプレッドシートの公開設定を確認してください）</div>';
   }finally{
     if (menuLoading) menuLoading.remove();
   }
@@ -640,8 +780,7 @@ async function loadMenuFromSheet(){
 
 function setPlaceStatusNote(text){
   const el = document.getElementById("placeStatusNote");
-  if (!el) return;
-  el.textContent = text || "";
+  if (el) el.textContent = text || "";
 }
 
 function setManualMode(enable){
@@ -653,9 +792,8 @@ function setManualMode(enable){
 
 function savePlaceCache(items){
   try{
-    const payload = { ts: Date.now(), items };
-    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify(payload));
-  }catch(_){}
+    localStorage.setItem(PLACE_CACHE_KEY, JSON.stringify({ ts: Date.now(), items: items }));
+  }catch(e){}
 }
 
 function loadPlaceCache(){
@@ -663,29 +801,34 @@ function loadPlaceCache(){
     const raw = localStorage.getItem(PLACE_CACHE_KEY);
     if (!raw) return null;
     const obj = JSON.parse(raw);
-    if (!obj?.ts || !Array.isArray(obj.items)) return null;
+    if (!obj || !obj.ts || !Array.isArray(obj.items)) return null;
     if (Date.now() - obj.ts > PLACE_CACHE_TTL_MS) return null;
     return obj.items;
-  }catch(_){ return null; }
+  }catch(e){
+    return null;
+  }
 }
 
 async function fetchWithTimeout(url, ms){
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), ms);
+  const timer = setTimeout(function(){ controller.abort(); }, ms);
+
   try{
-    const res = await fetch(url, { cache:"no-store", signal: controller.signal });
+    const res = await fetch(url, { cache: "no-store", signal: controller.signal });
     if (!res.ok) throw new Error("HTTP " + res.status);
     return await res.json();
   }finally{
-    clearTimeout(t);
+    clearTimeout(timer);
   }
 }
 
 function fillPlaceSelect(items){
   const sel = document.getElementById("custPlace");
-  sel.innerHTML = `<option value="">場所を選択してください</option>`;
-  for (const it of items){
-    const label = `${formatDateMdJaFromISO(it.date)} ${it.title}`;
+  sel.innerHTML = '<option value="">場所を選択してください</option>';
+
+  for (let i = 0; i < items.length; i++){
+    const it = items[i];
+    const label = formatDateMdJaFromISO(it.date) + " " + it.title;
     const o = document.createElement("option");
     o.value = label;
     o.textContent = label;
@@ -695,6 +838,7 @@ function fillPlaceSelect(items){
 
 async function loadPlaces(){
   const loading = document.getElementById("placeLoading");
+
   try{
     setPlaceStatusNote("");
     setManualMode(false);
@@ -711,7 +855,7 @@ async function loadPlaces(){
 
     fillPlaceSelect(items);
     savePlaceCache(items);
-    if (loading) loading.textContent = `出店日程：最新を表示中（〜${SHOW_DAYS}日）`;
+    if (loading) loading.textContent = "出店日程：最新を表示中（〜" + SHOW_DAYS + "日）";
 
   }catch(e){
     if (loading) loading.textContent = "出店日程の読み込みに失敗しました";
@@ -723,7 +867,6 @@ async function loadPlaces(){
 function getPlaceValue(){
   const selectVal = safeText(document.getElementById("custPlace").value);
   const manualVal = safeText(document.getElementById("custPlaceManual").value);
-
   if (selectVal) return selectVal;
   if (manualVal) return manualVal;
   return "";
@@ -732,33 +875,51 @@ function getPlaceValue(){
 function collectOrderLines(){
   const lines = [];
   const qtyInputs = document.querySelectorAll(".pg-qty");
-  for (const el of qtyInputs){
+  qtyInputs.forEach(function(el){
     const q = Number(el.value || 0);
     if (q > 0){
-      lines.push(`${el.dataset.name} ×${q}`);
+      lines.push(el.dataset.name + " ×" + q);
     }
-  }
+  });
   return lines;
 }
 
 function getTotal(){
   let total = 0;
   const qtyInputs = document.querySelectorAll(".pg-qty");
-  for (const el of qtyInputs){
-    const q = Number(el.value || 0);
-    const p = Number(el.dataset.price || 0);
-    total += q * p;
-  }
+  qtyInputs.forEach(function(el){
+    total += Number(el.value || 0) * Number(el.dataset.price || 0);
+  });
   return total;
 }
 
 function getTotalQty(){
   let totalQty = 0;
   const qtyInputs = document.querySelectorAll(".pg-qty");
-  for (const el of qtyInputs){
+  qtyInputs.forEach(function(el){
     totalQty += Number(el.value || 0);
-  }
+  });
   return totalQty;
+}
+
+function updateOrderSummary(){
+  const summary = document.getElementById("orderSummary");
+  const linesEl = document.getElementById("orderSummaryLines");
+  const totalEl = document.getElementById("orderSummaryTotal");
+
+  const lines = collectOrderLines();
+  const total = getTotal();
+
+  if (!lines.length){
+    summary.style.display = "none";
+    linesEl.textContent = "";
+    totalEl.textContent = "";
+    return;
+  }
+
+  summary.style.display = "block";
+  linesEl.textContent = lines.join("\n");
+  totalEl.textContent = "合計 " + total + "円";
 }
 
 function updateTotalAndButton(){
@@ -769,6 +930,7 @@ function updateTotalAndButton(){
   const hasMenu = collectOrderLines().length > 0;
 
   document.getElementById("total-val").textContent = String(total);
+  updateOrderSummary();
 
   const btn = document.getElementById("sendLineBtn");
   if (name && place && time && hasMenu){
@@ -802,12 +964,12 @@ function onSendLine(){
   const btn = document.getElementById("sendLineBtn");
   if (btn.classList.contains("disabled")) return;
   const msg = buildLineMessage();
-  const url = LINE_SEND_URL_BASE + encodeURIComponent(msg);
-  location.href = url;
+  location.href = LINE_SEND_URL_BASE + encodeURIComponent(msg);
 }
 
 function init(){
   buildTimeOptions(FALLBACK_TIME_RANGE);
+  updateOrderSummary();
 
   document.getElementById("custName").addEventListener("input", updateTotalAndButton);
   document.getElementById("custPlace").addEventListener("change", updateTotalAndButton);
@@ -815,7 +977,7 @@ function init(){
   document.getElementById("custTime").addEventListener("change", updateTotalAndButton);
   document.getElementById("sendLineBtn").addEventListener("click", onSendLine);
 
-  document.getElementById("retryPlaceBtn").addEventListener("click", async () => {
+  document.getElementById("retryPlaceBtn").addEventListener("click", async function(){
     document.getElementById("placeLoading").textContent = "出店日程を再読み込み中…";
     await loadPlaces();
     updateTotalAndButton();
@@ -824,6 +986,7 @@ function init(){
   loadPlaces();
   loadMenuFromSheet();
 }
+
 init();
 </script>
 </body>
